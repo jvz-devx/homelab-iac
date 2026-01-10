@@ -1,0 +1,48 @@
+---
+- name: Bootstrap FluxCD
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - group_vars/all.yml
+    - group_vars/all.sops.yml
+  environment:
+    KUBECONFIG: "{{ playbook_dir }}/../kubeconfig"
+  tasks:
+    - name: Create flux-system namespace
+      ansible.builtin.command: kubectl create namespace flux-system --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: true
+
+    - name: Create SOPS Age secret in cluster
+      ansible.builtin.shell: |
+        cat {{ lookup('env', 'HOME') }}/.config/sops/age/keys.txt |
+        kubectl create secret generic sops-age \
+          --namespace=flux-system \
+          --from-file=age.agekey=/dev/stdin \
+          --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: true
+
+    - name: Bootstrap Flux
+      ansible.builtin.command: >
+        flux bootstrap github
+        --owner={{ flux_github_owner }}
+        --repository={{ flux_github_repo }}
+        --branch={{ flux_github_branch }}
+        --path={{ flux_cluster_path }}
+        --personal
+        --token-auth
+      environment:
+        GITHUB_TOKEN: "{{ github_token }}"
+      changed_when: true
+
+    - name: Configure Flux SOPS decryption
+      ansible.builtin.shell: |
+        flux create kustomization infrastructure \
+          --source=flux-system \
+          --path="./infrastructure" \
+          --prune=true \
+          --interval=10m \
+          --decryption-provider=sops \
+          --decryption-secret=sops-age \
+          --export > {{ playbook_dir }}/../clusters/homelab/infrastructure.yaml
+      changed_when: true

@@ -1,0 +1,21 @@
+---
+# k3s configuration
+k3s_version: v1.31.4+k3s1
+k3s_install_flags: >-
+  --disable traefik
+  --disable servicelb
+  --write-kubeconfig-mode 644
+  --tls-san 192.168.1.100
+
+# FluxCD configuration
+flux_github_owner: jvz-devx
+flux_github_repo: homelab-iac
+flux_github_branch: main
+flux_cluster_path: clusters/homelab
+
+# Cloudflare
+cloudflare_tunnel_name: homelab
+cloudflare_domain: jensvanzutphen.com
+
+# Network
+k3s_node_ip: 192.168.1.100

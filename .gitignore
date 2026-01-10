@@ -1,0 +1,26 @@
+# Age keys
+*.age.key
+keys.txt
+
+# Kubeconfig
+kubeconfig
+
+# direnv
+.direnv/
+
+# Ansible
+*.retry
+
+# Terraform (future)
+.terraform/
+*.tfstate*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

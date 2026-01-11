@@ -1,0 +1,100 @@
+---
+# rclone-based FTP mount exposed as a PV
+# Mirrors the NixOS nas.nix config: FTP to 192.168.1.1, user admin
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rclone-nas
+  namespace: storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rclone-nas
+  template:
+    metadata:
+      labels:
+        app: rclone-nas
+    spec:
+      containers:
+        - name: rclone
+          image: rclone/rclone:latest
+          args:
+            - serve
+            - nfs
+            - :ftp:
+            - --ftp-host=192.168.1.1
+            - --ftp-user=$(FTP_USER)
+            - --ftp-pass=$(FTP_PASS)
+            - --ftp-port=21
+            - --addr=:2049
+            - --vfs-cache-mode=full
+            - --vfs-cache-max-age=24h
+            - --vfs-read-ahead=128M
+            - --no-checksum
+            - --transfers=8
+          env:
+            - name: FTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nas-ftp-credentials
+                  key: username
+            - name: FTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nas-ftp-credentials
+                  key: password
+          ports:
+            - containerPort: 2049
+              name: nfs
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nas-nfs
+  namespace: storage
+spec:
+  selector:
+    app: rclone-nas
+  ports:
+    - port: 2049
+      targetPort: 2049
+      name: nfs
+  type: ClusterIP
+---
+# PV and PVC for workloads to consume the NAS
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nas-ftp
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: nas-nfs.storage.svc.cluster.local
+    path: /
+  mountOptions:
+    - nfsvers=3
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nas-ftp
+  namespace: storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Ti
+  volumeName: nas-ftp

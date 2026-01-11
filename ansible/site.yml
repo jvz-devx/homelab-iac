@@ -1,42 +1,47 @@
 ---
-- name: Prepare k3s nodes
+# Full declarative provisioning: Proxmox LXC → k3s → Cilium → FluxCD
+# Usage: ansible-playbook site.yml
+#
+# For individual stages, use tags:
+#   ansible-playbook site.yml --tags proxmox    # LXC only
+#   ansible-playbook site.yml --tags k3s        # k3s only
+#   ansible-playbook site.yml --tags flux       # Flux only
+
+- name: "Stage 1: Create LXC container on Proxmox"
+  hosts: proxmox
+  gather_facts: false
+  tags: [proxmox]
+  roles:
+    - proxmox_lxc
+
+- name: "Stage 2: Prepare k3s node"
   hosts: k3s_cluster
   become: true
+  tags: [k3s]
   roles:
-    - prereqs
+    - k3s_prereqs
 
-- name: Install k3s server
+- name: "Stage 3: Install k3s server"
   hosts: master
   become: true
-  tasks:
-    - name: Check if k3s is installed
-      ansible.builtin.stat:
-        path: /usr/local/bin/k3s
-      register: k3s_binary
+  tags: [k3s]
+  roles:
+    - k3s_server
 
-    - name: Install k3s
-      ansible.builtin.shell: |
-        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{{ k3s_version }}" sh -s - server {{ k3s_install_flags }}
-      when: not k3s_binary.stat.exists
-
-    - name: Wait for k3s to be ready
-      ansible.builtin.command: k3s kubectl get nodes
-      register: k3s_ready
-      retries: 30
-      delay: 10
-      until: k3s_ready.rc == 0
-      changed_when: false
-
-    - name: Fetch kubeconfig
-      ansible.builtin.fetch:
-        src: /etc/rancher/k3s/k3s.yaml
-        dest: "{{ playbook_dir }}/../kubeconfig"
-        flat: true
-
-    - name: Fix kubeconfig server address
-      ansible.builtin.replace:
-        path: "{{ playbook_dir }}/../kubeconfig"
-        regexp: "https://127.0.0.1:6443"
-        replace: "https://{{ k3s_node_ip }}:6443"
-      delegate_to: localhost
-      become: false
+- name: "Stage 4: Bootstrap Cilium CNI + FluxCD"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags: [flux]
+  vars_files:
+    - group_vars/all.yml
+  vars:
+    sops_secrets: "{{ lookup('community.sops.sops', 'group_vars/all.sops.yml') | from_yaml }}"
+    github_token: "{{ sops_secrets.github_token }}"
+    cloudflare_api_token: "{{ sops_secrets.cloudflare_api_token }}"
+    cloudflare_tunnel_token: "{{ sops_secrets.cloudflare_tunnel_token }}"
+  environment:
+    KUBECONFIG: "{{ playbook_dir }}/../kubeconfig"
+    SOPS_AGE_KEY_FILE: "{{ lookup('env', 'HOME') }}/.config/sops/age/keys.txt"
+  roles:
+    - flux_bootstrap

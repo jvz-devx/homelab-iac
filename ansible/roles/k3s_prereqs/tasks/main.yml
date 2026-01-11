@@ -1,4 +1,6 @@
 ---
+# Base OS prerequisites for k3s on Ubuntu LXC
+
 - name: Update apt cache
   ansible.builtin.apt:
     update_cache: true
@@ -39,9 +41,17 @@
   community.general.modprobe:
     name: br_netfilter
     state: present
+  ignore_errors: true
 
 - name: Ensure br_netfilter loads on boot
   ansible.builtin.copy:
-    content: "br_netfilter"
+    content: "br_netfilter\n"
     dest: /etc/modules-load.d/br_netfilter.conf
     mode: "0644"
+
+- name: Ensure /dev/kmsg exists (kubelet requirement)
+  ansible.builtin.file:
+    src: /dev/console
+    dest: /dev/kmsg
+    state: link
+    force: true

@@ -1,76 +1,90 @@
 # Homelab IaC
 
-Infrastructure-as-Code for a homelab k3s cluster managed with FluxCD, provisioned with Ansible, secrets encrypted with SOPS/Age.
+Fully declarative homelab infrastructure. One command from bare metal to GitOps.
 
 ## Architecture
 
-- **Proxmox** host at 192.168.1.202
-- **k3s** single-node cluster in LXC 101 (192.168.1.100)
-- **FluxCD** for GitOps continuous delivery
-- **Cloudflare Tunnel** exposing services on `jensvanzutphen.com`
-- **SOPS/Age** for secret encryption
-- **Ansible** for initial provisioning and disaster recovery
+```
+Proxmox (192.168.1.202)
+└── LXC 101 (192.168.1.100) — privileged, Ubuntu 24.04
+    └── k3s v1.31.4
+        ├── Cilium (CNI, replaces flannel)
+        ├── FluxCD (GitOps)
+        ├── cert-manager
+        ├── ingress-nginx (replaces traefik)
+        ├── cloudflared (Cloudflare Tunnel → jensvanzutphen.com)
+        └── NAS storage (FTP mount via rclone → 192.168.1.1)
+```
 
 ## Prerequisites
 
 - Nix with flakes enabled
-- direnv (optional, for auto-loading devShell)
 - Age key at `~/.config/sops/age/keys.txt`
-- SSH access to Proxmox host and k3s node
-- GitHub token with repo access
+- SSH access to Proxmox host (192.168.1.202)
+- GitHub PAT with `repo` scope in `ansible/group_vars/all.sops.yml`
 
 ## Quick Start
 
 ```bash
-# Enter dev shell
+# Enter dev shell (provides ansible, flux, kubectl, helm, sops, age, etc.)
 nix develop
 
-# Or with direnv
-direnv allow
-
-# Provision k3s node
+# Full provisioning: Proxmox LXC → k3s → Cilium → FluxCD
 cd ansible
 ansible-playbook site.yml
+```
 
-# Bootstrap FluxCD
+## Staged Provisioning
+
+```bash
+# Stage 1: Create LXC on Proxmox only
+ansible-playbook site.yml --tags proxmox
+
+# Stage 2+3: Install k3s only (LXC must exist)
+ansible-playbook site.yml --tags k3s
+
+# Stage 4: Bootstrap Cilium + FluxCD only (k3s must be running)
+ansible-playbook site.yml --tags flux
+# Or standalone:
 ansible-playbook flux-bootstrap.yml
 ```
 
 ## Disaster Recovery
 
-### Full Rebuild (from scratch)
+1. `ansible-playbook site.yml` — recreates everything from scratch
+2. FluxCD automatically reconciles all workloads from Git
 
-1. Recreate LXC on Proxmox (see docs/proxmox-setup.md or Phase 1 notes)
-2. Run provisioning:
-   ```bash
-   cd ansible
-   ansible-playbook site.yml
-   ansible-playbook flux-bootstrap.yml
-   ```
-3. FluxCD will automatically reconcile all workloads from Git
+## Secrets
 
-### Partial Recovery
+Encrypted with SOPS/Age. To edit:
 
-- **k3s reset**: `ansible-playbook site.yml` (idempotent)
-- **Flux re-bootstrap**: `ansible-playbook flux-bootstrap.yml`
-- **Single app**: `flux reconcile kustomization apps`
+```bash
+sops ansible/group_vars/all.sops.yml        # Ansible secrets
+sops infrastructure/cloudflared/secret.yaml  # K8s secrets
+sops infrastructure/nas/secret.yaml          # NAS credentials
+```
 
 ## Repository Structure
 
 ```
-ansible/          # Ansible playbooks and roles
-clusters/         # FluxCD cluster entrypoints
-infrastructure/   # Core infrastructure (cert-manager, ingress, cloudflared)
-apps/             # Application deployments
+ansible/
+├── site.yml                    # Full provisioning playbook
+├── flux-bootstrap.yml          # Standalone Flux bootstrap
+├── inventory/hosts.yml         # Proxmox + k3s hosts
+├── group_vars/
+│   ├── all.yml                 # All variables (declarative config)
+│   └── all.sops.yml            # Encrypted secrets
+└── roles/
+    ├── proxmox_lxc/            # LXC creation on Proxmox
+    ├── k3s_prereqs/            # OS setup for k3s
+    ├── k3s_server/             # k3s install + systemd override
+    └── flux_bootstrap/         # Cilium + FluxCD bootstrap
+clusters/homelab/               # Flux entrypoints
+infrastructure/                 # Declarative k8s infra
+├── cilium/                     # CNI (managed by Flux after bootstrap)
+├── cert-manager/               # TLS certificates
+├── ingress-nginx/              # Ingress controller
+├── cloudflared/                # Cloudflare Tunnel
+└── nas/                        # NAS FTP mount via rclone
+apps/                           # Application deployments
 ```
-
-## Secrets Management
-
-Secrets are encrypted with SOPS using Age encryption. To edit:
-
-```bash
-sops ansible/group_vars/all.sops.yml
-sops infrastructure/cloudflared/secret.yaml
-```
-
-Never commit plaintext secrets. The `.sops.yaml` config ensures automatic encryption.

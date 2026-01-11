@@ -1,0 +1,62 @@
+---
+# Declarative k3s server installation
+# Idempotent: skips install if binary exists, always ensures correct config
+
+- name: Check if k3s is installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Install k3s
+  ansible.builtin.shell: |
+    curl -sfL https://get.k3s.io | \
+      INSTALL_K3S_VERSION="{{ k3s_version }}" \
+      sh -s - server {{ k3s_install_flags }}
+  when: not k3s_binary.stat.exists
+  args:
+    creates: /usr/local/bin/k3s
+
+- name: Ensure k3s systemd override directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/k3s.service.d
+    state: directory
+    mode: "0755"
+
+- name: Deploy k3s systemd override (declarative flags)
+  ansible.builtin.template:
+    src: k3s-override.conf.j2
+    dest: /etc/systemd/system/k3s.service.d/override.conf
+    mode: "0644"
+  notify: restart k3s
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Ensure k3s is enabled and running
+  ansible.builtin.systemd:
+    name: k3s
+    enabled: true
+    state: started
+
+- name: Wait for k3s API server to be ready
+  ansible.builtin.command: k3s kubectl get nodes
+  register: k3s_ready
+  retries: 30
+  delay: 10
+  until: k3s_ready.rc == 0
+  changed_when: false
+
+- name: Fetch kubeconfig to local machine
+  ansible.builtin.fetch:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "{{ playbook_dir }}/../kubeconfig"
+    flat: true
+
+- name: Fix kubeconfig server address
+  ansible.builtin.replace:
+    path: "{{ playbook_dir }}/../kubeconfig"
+    regexp: "https://127.0.0.1:6443"
+    replace: "https://{{ k3s_node_ip }}:6443"
+  delegate_to: localhost
+  become: false

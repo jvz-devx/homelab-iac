@@ -1,21 +1,53 @@
 ---
-# k3s configuration
+# ── Proxmox LXC ──────────────────────────────────────────────
+lxc_id: 101
+lxc_hostname: k3s-node
+lxc_template: ubuntu-24.04-standard_24.04-2_amd64.tar.zst
+lxc_template_storage: local
+lxc_cores: 2
+lxc_memory: 4096
+lxc_swap: 512
+lxc_disk: "local-lvm:32"
+lxc_ip: 192.168.1.100/24
+lxc_gateway: 192.168.1.1
+lxc_ssh_pubkey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKvQsKbzbW9a3tncPJojcCXLjHg8aBCQCmPQVzzsRXeZ nixos"
+lxc_onboot: true
+# privileged=true required for k3s (mount, BPF, cgroups)
+lxc_privileged: true
+lxc_features:
+  - "nesting=1"
+  - "keyctl=1"
+lxc_extra_conf:
+  - "lxc.apparmor.profile: unconfined"
+  - "lxc.cap.drop:"
+  - "lxc.mount.auto: proc:rw sys:rw"
+
+# ── k3s ───────────────────────────────────────────────────────
 k3s_version: v1.31.4+k3s1
 k3s_install_flags: >-
   --disable traefik
   --disable servicelb
+  --disable-network-policy
+  --flannel-backend=none
   --write-kubeconfig-mode 644
-  --tls-san 192.168.1.100
+  --tls-san {{ k3s_node_ip }}
+  --kubelet-arg=feature-gates=KubeletInUserNamespace=true
+k3s_node_ip: 192.168.1.100
 
-# FluxCD configuration
+# ── Cilium (bootstrap CNI before Flux takes over) ────────────
+cilium_version: 1.16.6
+
+# ── FluxCD ────────────────────────────────────────────────────
 flux_github_owner: jvz-devx
 flux_github_repo: homelab-iac
 flux_github_branch: main
 flux_cluster_path: clusters/homelab
 
-# Cloudflare
+# ── Cloudflare ────────────────────────────────────────────────
 cloudflare_tunnel_name: homelab
 cloudflare_domain: jensvanzutphen.com
 
-# Network
-k3s_node_ip: 192.168.1.100
+# ── NAS (mirrors NixOS nas.nix: FTP to router NAS) ───────────
+nas_host: 192.168.1.1
+nas_user: admin
+nas_mount_path: /mnt/nas

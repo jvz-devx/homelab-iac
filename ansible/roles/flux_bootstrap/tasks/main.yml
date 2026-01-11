@@ -1,0 +1,85 @@
+---
+# Declarative FluxCD bootstrap
+# 1. Installs Cilium CNI (required before pods can schedule)
+# 2. Creates flux-system namespace and SOPS age secret
+# 3. Bootstraps Flux from GitHub
+# Idempotent: safe to re-run
+
+- name: Add Cilium Helm repo
+  ansible.builtin.command: helm repo add cilium https://helm.cilium.io/
+  changed_when: false
+  failed_when: false
+
+- name: Update Helm repos
+  ansible.builtin.command: helm repo update
+  changed_when: false
+
+- name: Check if Cilium is installed
+  ansible.builtin.command: helm status cilium -n kube-system
+  register: cilium_status
+  failed_when: false
+  changed_when: false
+
+- name: Install Cilium CNI (bootstrap — Flux manages upgrades)
+  ansible.builtin.command: >
+    helm install cilium cilium/cilium
+    --version {{ cilium_version }}
+    --namespace kube-system
+    --set operator.replicas=1
+    --set ipam.mode=kubernetes
+    --set kubeProxyReplacement=false
+    --set cgroup.autoMount.enabled=false
+    --set cgroup.hostRoot=/sys/fs/cgroup
+    --set securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}"
+    --set securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}"
+  when: cilium_status.rc != 0
+
+- name: Wait for Cilium to be ready
+  ansible.builtin.command: kubectl -n kube-system rollout status daemonset/cilium --timeout=180s
+  changed_when: false
+
+- name: Wait for node to be Ready
+  ansible.builtin.shell: kubectl get nodes -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}'
+  register: node_ready
+  retries: 30
+  delay: 10
+  until: node_ready.stdout == "True"
+  changed_when: false
+
+- name: Create flux-system namespace
+  ansible.builtin.shell: >
+    kubectl create namespace flux-system
+    --dry-run=client -o yaml | kubectl apply -f -
+  changed_when: true
+
+- name: Deploy SOPS Age secret to cluster
+  ansible.builtin.shell: |
+    cat {{ lookup('env', 'HOME') }}/.config/sops/age/keys.txt |
+    kubectl create secret generic sops-age \
+      --namespace=flux-system \
+      --from-file=age.agekey=/dev/stdin \
+      --dry-run=client -o yaml | kubectl apply -f -
+  changed_when: true
+
+- name: Check if Flux is already bootstrapped
+  ansible.builtin.command: kubectl get deployment -n flux-system source-controller
+  register: flux_check
+  failed_when: false
+  changed_when: false
+
+- name: Bootstrap FluxCD
+  ansible.builtin.command: >
+    flux bootstrap github
+    --owner={{ flux_github_owner }}
+    --repository={{ flux_github_repo }}
+    --branch={{ flux_github_branch }}
+    --path={{ flux_cluster_path }}
+    --personal
+    --token-auth
+  environment:
+    GITHUB_TOKEN: "{{ github_token }}"
+  when: flux_check.rc != 0
+  register: flux_result
+  retries: 2
+  delay: 30
+  until: flux_result.rc == 0

@@ -1,0 +1,96 @@
+---
+# Declarative LXC container creation on Proxmox
+# Idempotent: skips creation if container already exists
+
+- name: Download LXC template
+  ansible.builtin.command: >
+    pveam download {{ lxc_template_storage }}
+    {{ lxc_template }}
+  args:
+    creates: "/var/lib/vz/template/cache/{{ lxc_template }}"
+
+- name: Check if LXC {{ lxc_id }} exists
+  ansible.builtin.command: pct status {{ lxc_id }}
+  register: lxc_status
+  failed_when: false
+  changed_when: false
+
+- name: Create LXC {{ lxc_id }}
+  ansible.builtin.command: >
+    pct create {{ lxc_id }}
+    {{ lxc_template_storage }}:vztmpl/{{ lxc_template }}
+    --hostname {{ lxc_hostname }}
+    --cores {{ lxc_cores }}
+    --memory {{ lxc_memory }}
+    --swap {{ lxc_swap }}
+    --rootfs {{ lxc_disk }}
+    --net0 name=eth0,bridge=vmbr0,ip={{ lxc_ip }},gw={{ lxc_gateway }}
+    --features {{ lxc_features | join(',') }}
+    --unprivileged {{ '0' if lxc_privileged else '1' }}
+    --onboot {{ '1' if lxc_onboot else '0' }}
+    --start 0
+  when: lxc_status.rc != 0
+
+- name: Ensure LXC is stopped for config changes
+  ansible.builtin.command: pct stop {{ lxc_id }}
+  when: lxc_status.rc == 0 and 'running' in lxc_status.stdout
+  failed_when: false
+  changed_when: true
+
+- name: Apply extra LXC configuration
+  ansible.builtin.lineinfile:
+    path: "/etc/pve/lxc/{{ lxc_id }}.conf"
+    line: "{{ item }}"
+    create: false
+  loop: "{{ lxc_extra_conf }}"
+
+- name: Start LXC {{ lxc_id }}
+  ansible.builtin.command: pct start {{ lxc_id }}
+  register: lxc_start
+  failed_when: lxc_start.rc != 0 and 'already running' not in lxc_start.stderr
+  changed_when: lxc_start.rc == 0
+
+- name: Wait for LXC to be ready
+  ansible.builtin.pause:
+    seconds: 10
+
+- name: Ensure SSH directory exists
+  ansible.builtin.command: pct exec {{ lxc_id }} -- mkdir -p /root/.ssh
+  changed_when: true
+
+- name: Deploy SSH authorized key
+  ansible.builtin.command: >
+    pct exec {{ lxc_id }} -- bash -c
+    'echo "{{ lxc_ssh_pubkey }}" > /root/.ssh/authorized_keys &&
+     chmod 700 /root/.ssh &&
+     chmod 600 /root/.ssh/authorized_keys'
+  changed_when: true
+
+- name: Ensure /dev/kmsg exists (required for kubelet in LXC)
+  ansible.builtin.command: >
+    pct exec {{ lxc_id }} -- bash -c
+    '[ -e /dev/kmsg ] || ln -s /dev/console /dev/kmsg'
+  changed_when: true
+
+- name: Persist /dev/kmsg symlink across reboots
+  ansible.builtin.command: >
+    pct exec {{ lxc_id }} -- bash -c
+    'cat > /etc/rc.local << "RCEOF"
+    #!/bin/bash
+    [ ! -e /dev/kmsg ] && ln -s /dev/console /dev/kmsg
+    exit 0
+    RCEOF
+    chmod +x /etc/rc.local'
+  changed_when: true
+
+- name: Verify SSH connectivity to LXC
+  ansible.builtin.command: >
+    ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10
+    root@{{ lxc_ip | regex_replace('/.*', '') }} hostname
+  delegate_to: localhost
+  become: false
+  register: ssh_test
+  retries: 3
+  delay: 5
+  until: ssh_test.rc == 0
+  changed_when: false

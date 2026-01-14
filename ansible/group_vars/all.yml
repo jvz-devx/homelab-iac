@@ -23,6 +23,10 @@ lxc_extra_conf:
   - "lxc.mount.auto: proc:rw sys:rw"
 
 # ── k3s ───────────────────────────────────────────────────────
+# Disable built-in traefik/servicelb/flannel — managed declaratively via Flux:
+#   traefik    → infrastructure/traefik/   (HelmRelease)
+#   servicelb  → infrastructure/metallb/   (HelmRelease + L2 config)
+#   flannel    → infrastructure/cilium/    (HelmRelease)
 k3s_version: v1.31.4+k3s1
 k3s_install_flags: >-
   --disable traefik
@@ -36,6 +40,10 @@ k3s_node_ip: 192.168.1.100
 
 # ── Cilium (bootstrap CNI before Flux takes over) ────────────
 cilium_version: 1.16.6
+
+# ── MetalLB ──────────────────────────────────────────────────
+# IP range for LoadBalancer services (must be free on your LAN)
+metallb_address_range: 192.168.1.110-192.168.1.120
 
 # ── FluxCD ────────────────────────────────────────────────────
 flux_github_owner: jvz-devx

@@ -2,15 +2,19 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  # CNI (replaces flannel)
+  # CNI
   - cilium/namespace.yaml
   - cilium/helmrelease.yaml
+  # Load balancer
+  - metallb/namespace.yaml
+  - metallb/helmrelease.yaml
+  - metallb/config.yaml
+  # Ingress
+  - traefik/namespace.yaml
+  - traefik/helmrelease.yaml
   # Certificate management
   - cert-manager/namespace.yaml
   - cert-manager/helmrelease.yaml
-  # Ingress (replaces traefik)
-  - ingress-nginx/namespace.yaml
-  - ingress-nginx/helmrelease.yaml
   # Cloudflare Tunnel
   - cloudflared/namespace.yaml
   - cloudflared/deployment.yaml

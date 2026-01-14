@@ -22,7 +22,7 @@ spec:
           args:
             - serve
             - nfs
-            - :ftp:
+            - ":ftp:"
             - --ftp-host=192.168.1.1
             - --ftp-user=$(FTP_USER)
             - --ftp-pass=$(FTP_PASS)

@@ -38,11 +38,10 @@
   changed_when: true
 
 - name: Apply extra LXC configuration
-  ansible.builtin.lineinfile:
+  ansible.builtin.blockinfile:
     path: "/etc/pve/lxc/{{ lxc_id }}.conf"
-    line: "{{ item }}"
-    create: false
-  loop: "{{ lxc_extra_conf }}"
+    marker: "# {mark} ANSIBLE MANAGED - k3s extra config"
+    block: "{{ lxc_extra_conf | join('\n') }}"
 
 - name: Start LXC {{ lxc_id }}
   ansible.builtin.command: pct start {{ lxc_id }}

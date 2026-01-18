@@ -8,7 +8,6 @@ resources:
   # Load balancer
   - metallb/namespace.yaml
   - metallb/helmrelease.yaml
-  - metallb/config.yaml
   # Ingress
   - traefik/namespace.yaml
   - traefik/helmrelease.yaml
@@ -18,6 +17,7 @@ resources:
   # Cloudflare Tunnel
   - cloudflared/namespace.yaml
   - cloudflared/deployment.yaml
+  - cloudflared/configmap.yaml
   - cloudflared/secret.yaml
   # NAS storage
   - nas/namespace.yaml

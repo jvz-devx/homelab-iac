@@ -25,6 +25,8 @@
     --swap {{ lxc_swap }}
     --rootfs {{ lxc_disk }}
     --net0 name=eth0,bridge=vmbr0,ip={{ lxc_ip }},gw={{ lxc_gateway }}
+    --nameserver 8.8.8.8
+    --searchdomain " "
     --features {{ lxc_features | join(',') }}
     --unprivileged {{ '0' if lxc_privileged else '1' }}
     --onboot {{ '1' if lxc_onboot else '0' }}

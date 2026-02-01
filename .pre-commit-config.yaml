@@ -1,0 +1,27 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+        exclude: ^(infrastructure/controllers/cloudflared/secret\.yaml|infrastructure/controllers/nas/secret\.yaml|ansible/group_vars/all\.sops\.yml)$
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.0
+    hooks:
+      - id: yamllint
+        args: [-c, .yamllint.yaml]
+        exclude: ^(infrastructure/controllers/cloudflared/secret\.yaml|infrastructure/controllers/nas/secret\.yaml|ansible/group_vars/all\.sops\.yml)$
+
+  - repo: local
+    hooks:
+      - id: sops-check
+        name: Check SOPS files are encrypted
+        entry: scripts/hooks/sops-check.sh
+        language: script
+        files: (secret\.yaml$|\.sops\.yml$)

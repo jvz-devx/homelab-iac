@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Overview
 
 Fully declarative homelab IaC. Single-node k3s cluster in a Proxmox LXC container, GitOps-managed by FluxCD. Everything from LXC creation to app deployment is defined in code.
@@ -37,7 +39,8 @@ ansible-playbook site.yml --tags flux      # Cilium + Flux only
 ansible-playbook flux-bootstrap.yml
 
 # Force Flux reconciliation
-flux reconcile kustomization infrastructure
+flux reconcile kustomization infrastructure-controllers
+flux reconcile kustomization infrastructure-configs
 flux reconcile kustomization apps
 
 # Check cluster status
@@ -54,15 +57,15 @@ k3s ships with traefik, servicelb (klipper), and flannel. All three are **disabl
 
 | k3s built-in | Replaced by | Location |
 |---|---|---|
-| flannel | Cilium | `infrastructure/cilium/` |
-| klipper-lb | MetalLB | `infrastructure/metallb/` |
-| traefik | Traefik (Helm chart) | `infrastructure/traefik/` |
+| flannel | Cilium | `infrastructure/controllers/cilium/` |
+| klipper-lb | MetalLB | `infrastructure/controllers/metallb/` |
+| traefik | Traefik (Helm chart) | `infrastructure/controllers/traefik/` |
 
 **Why?** k3s built-ins can't be version-pinned, configured declaratively, or managed via GitOps. The Flux HelmReleases give us version control, reproducible config, and automatic upgrades.
 
 ### Cilium is bootstrapped via Helm, then managed by Flux
 
-Cilium is the CNI — pods can't schedule without it. The `flux_bootstrap` Ansible role installs Cilium via Helm before Flux starts. After Flux is running, the HelmRelease in `infrastructure/cilium/` takes over management.
+Cilium is the CNI — pods can't schedule without it. The `flux_bootstrap` Ansible role installs Cilium via Helm before Flux starts. After Flux is running, the HelmRelease in `infrastructure/controllers/cilium/` takes over management.
 
 ### Privileged LXC is required
 
@@ -73,47 +76,48 @@ k3s in unprivileged LXC fails due to mount/BPF/cgroup restrictions. The LXC is c
 Managed by SOPS with Age encryption. Key at `~/.config/sops/age/keys.txt`.
 
 ```bash
-sops ansible/group_vars/all.sops.yml        # GitHub PAT, Cloudflare tokens
-sops infrastructure/cloudflared/secret.yaml  # Tunnel token (k8s secret)
-sops infrastructure/nas/secret.yaml          # NAS credentials (k8s secret)
+sops ansible/group_vars/all.sops.yml                    # GitHub PAT, Cloudflare tokens
+sops infrastructure/controllers/cloudflared/secret.yaml  # Tunnel token (k8s secret)
+sops infrastructure/controllers/nas/secret.yaml          # NAS credentials (k8s secret)
 ```
 
 **Rules:**
 - Never put plaintext secrets in any file
-- K8s secrets use `encrypted_regex: ^(data|stringData)$` so only values are encrypted
-- Ansible secrets are fully encrypted YAML
+- K8s secrets use `encrypted_regex: ^(data|stringData)$` so only values are encrypted (metadata stays readable)
+- Ansible secrets (`.sops.yml`) are fully encrypted YAML
 - Flux decrypts k8s secrets via the `sops-age` secret in `flux-system` namespace
 
-## File Layout
+## Flux Dependency Chain
 
-```
-ansible/
-├── site.yml                          # 4-stage pipeline (proxmox → k3s → flux)
-├── flux-bootstrap.yml                # Standalone Flux bootstrap
-├── inventory/hosts.yml               # Proxmox host + k3s node
-├── group_vars/
-│   ├── all.yml                       # ALL config — single source of truth
-│   └── all.sops.yml                  # Encrypted secrets
-└── roles/
-    ├── proxmox_lxc/                  # Creates LXC on Proxmox (idempotent)
-    ├── k3s_prereqs/                  # OS packages, sysctl, kernel modules
-    ├── k3s_server/                   # k3s install + templated systemd override
-    └── flux_bootstrap/               # Cilium bootstrap + Flux bootstrap
+The ordering in `clusters/homelab/` matters:
 
-clusters/homelab/
-├── infrastructure.yaml               # Flux Kustomization → infrastructure/
-└── apps.yaml                         # Flux Kustomization → apps/
+1. **`infrastructure-controllers`** Kustomization → `./infrastructure/controllers/kustomization.yaml` — installs all HelmReleases (cilium, metallb, traefik, cert-manager, cloudflared, nas). Has healthChecks that wait for CRDs.
+2. **`infrastructure-configs`** Kustomization (dependsOn: infrastructure-controllers) → `./infrastructure/configs/kustomization.yaml` — MetalLB IPAddressPool/L2Advertisement, cert-manager ClusterIssuer. Separated because these CRDs don't exist until HelmReleases are ready.
+3. **`apps`** Kustomization (dependsOn: infrastructure-controllers) → `./apps/kustomization.yaml` — all user applications.
 
-infrastructure/                       # All managed by Flux after bootstrap
-├── cilium/                           # CNI
-├── metallb/                          # LoadBalancer + IP pool config
-├── traefik/                          # Ingress controller
-├── cert-manager/                     # TLS certificate automation
-├── cloudflared/                      # Cloudflare Tunnel
-└── nas/                              # NAS FTP mount via rclone
+All Kustomizations reference `GitRepository flux-system` (created by FluxCD bootstrap). You never need to create additional GitRepositories.
 
-apps/                                 # Application deployments (add here)
-```
+## How to Add a New App
+
+1. Create `apps/{app-name}/` with `namespace.yaml`, `deployment.yaml`, `service.yaml`, `ingress.yaml`
+2. Create `apps/{app-name}/kustomization.yaml` listing all resource files
+3. Ingress uses `ingressClassName: traefik` and annotation `cert-manager.io/cluster-issuer: letsencrypt-production` for TLS
+4. Add one line `- {app-name}` to `apps/kustomization.yaml`
+
+## How to Add an Infrastructure Component
+
+1. Create `infrastructure/controllers/{component}/` with `namespace.yaml` + `helmrelease.yaml` (include `HelmRepository` in the same file)
+2. HelmRelease versions use `X.Y.x` format (e.g., `"1.16.x"`) to allow automatic patch updates
+3. Add to `infrastructure/controllers/kustomization.yaml` (namespace before other resources)
+4. If the component creates CRDs that other resources depend on, put those config resources in `infrastructure/configs/kustomization.yaml` instead
+5. If other Kustomizations need to wait for this component, add a healthCheck in `clusters/homelab/infrastructure.yaml`
+
+## Variables and Templating
+
+- All Ansible variables live in `ansible/group_vars/all.yml` (single source of truth)
+- Ansible secrets in `ansible/group_vars/all.sops.yml`, loaded via `community.sops.sops` lookup
+- **K8s manifests are static YAML** — variables from `all.yml` do NOT flow into `infrastructure/` or `apps/` files. Some values (like MetalLB IP range) are intentionally duplicated as hardcoded values in both places.
+- The k3s systemd override template (`k3s-override.conf.j2`) completely replaces ExecStart, injecting all flags from `k3s_install_flags` variable
 
 ## Coding Rules
 

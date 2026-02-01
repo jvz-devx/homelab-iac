@@ -1,0 +1,25 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cv-web
+  namespace: cv-web
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: cv.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cv-web
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - cv.jensvanzutphen.com
+      secretName: cv-tls

@@ -74,6 +74,7 @@
     --repository={{ flux_github_repo }}
     --branch={{ flux_github_branch }}
     --path={{ flux_cluster_path }}
+    --components-extra=image-reflector-controller,image-automation-controller
     --personal
     --token-auth
   environment:

@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,7 +20,7 @@ spec:
     spec:
       containers:
         - name: cv-web
-          image: ghcr.io/jvz-devx/cv-web:latest # {"$imagepolicy": "flux-system:cv-web"}
+          image: ghcr.io/jvz-devx/cv-web:main-1-f5a51805f88cc9bfca490fd5ce55f9b4de2b250d # {"$imagepolicy": "flux-system:cv-web"}
           imagePullPolicy: Always
           ports:
             - containerPort: 3000

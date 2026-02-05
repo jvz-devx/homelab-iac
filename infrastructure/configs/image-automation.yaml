@@ -1,0 +1,52 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: cv-web
+  namespace: flux-system
+spec:
+  image: ghcr.io/jvz-devx/cv-web
+  interval: 1m0s
+  secretRef:
+    name: ghcr-auth
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: cv-web
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cv-web
+  filterTags:
+    pattern: '^main-(?P<build>\d+)-[a-f0-9]+$'
+    extract: '$build'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageUpdateAutomation
+metadata:
+  name: image-updater
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        email: fluxcdbot@users.noreply.github.com
+        name: fluxcdbot
+      messageTemplate: 'chore: update {{range .Changed.Changes}}{{print .OldValue}} → {{println .NewValue}}{{end}}'
+    push:
+      branch: main
+  update:
+    path: ./apps
+    strategy: Setters

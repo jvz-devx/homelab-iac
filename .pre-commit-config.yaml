@@ -6,7 +6,7 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
         args: [--allow-multiple-documents]
-        exclude: ^(infrastructure/controllers/cloudflared/secret\.yaml|infrastructure/controllers/nas/secret\.yaml|ansible/group_vars/all\.sops\.yml)$
+        exclude: ^(infrastructure/controllers/cloudflared/secret\.yaml|infrastructure/controllers/nas/secret\.yaml|infrastructure/configs/ghcr-auth-secret\.yaml|ansible/group_vars/all\.sops\.yml)$
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=500]
@@ -16,7 +16,7 @@ repos:
     hooks:
       - id: yamllint
         args: [-c, .yamllint.yaml]
-        exclude: ^(infrastructure/controllers/cloudflared/secret\.yaml|infrastructure/controllers/nas/secret\.yaml|ansible/group_vars/all\.sops\.yml)$
+        exclude: ^(infrastructure/controllers/cloudflared/secret\.yaml|infrastructure/controllers/nas/secret\.yaml|infrastructure/configs/ghcr-auth-secret\.yaml|ansible/group_vars/all\.sops\.yml)$
 
   - repo: local
     hooks:

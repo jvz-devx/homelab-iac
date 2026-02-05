@@ -6,3 +6,7 @@ resources:
   - metallb-config.yaml
   # cert-manager ClusterIssuer (requires cert-manager HelmRelease to be ready)
   - clusterissuer.yaml
+  # GHCR authentication for Flux image scanning
+  - ghcr-auth-secret.yaml
+  # Flux image automation (ImageRepository, ImagePolicy, ImageUpdateAutomation)
+  - image-automation.yaml

@@ -5,7 +5,12 @@ metadata:
   name: cv-web
   namespace: cv-web
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: cv-web
@@ -16,8 +21,8 @@ spec:
     spec:
       containers:
         - name: cv-web
-          image: ghcr.io/jvz-devx/cv-web:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/jvz-devx/cv-web:latest # {"$imagepolicy": "flux-system:cv-web"}
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           resources:

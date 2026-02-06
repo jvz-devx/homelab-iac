@@ -18,6 +18,8 @@ spec:
       labels:
         app: cv-web
     spec:
+      imagePullSecrets:
+        - name: ghcr-auth
       containers:
         - name: cv-web
           image: ghcr.io/jvz-devx/cv-web:main-2-b42d7b0c1452f322d38ac966a201dd0fbec879ed # {"$imagepolicy": "flux-system:cv-web"}

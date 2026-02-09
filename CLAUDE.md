@@ -84,7 +84,7 @@ sops infrastructure/controllers/nas/secret.yaml          # NAS credentials (k8s 
 **Rules:**
 - Never put plaintext secrets in any file
 - K8s secrets use `encrypted_regex: ^(data|stringData)$` so only values are encrypted (metadata stays readable)
-- Ansible secrets (`.sops.yml`) are fully encrypted YAML
+- Ansible secrets (`*.sops.yml`) are fully encrypted YAML
 - Flux decrypts k8s secrets via the `sops-age` secret in `flux-system` namespace
 
 ## Flux Dependency Chain
@@ -103,6 +103,7 @@ All Kustomizations reference `GitRepository flux-system` (created by FluxCD boot
 2. Create `apps/{app-name}/kustomization.yaml` listing all resource files
 3. Ingress uses `ingressClassName: traefik` and annotation `cert-manager.io/cluster-issuer: letsencrypt-production` for TLS
 4. Add one line `- {app-name}` to `apps/kustomization.yaml`
+5. If pulling from a private registry (e.g., GHCR), add a `ghcr-auth-secret.yaml` with `imagePullSecrets` and reference it in the deployment
 
 ## How to Add an Infrastructure Component
 
@@ -118,6 +119,38 @@ All Kustomizations reference `GitRepository flux-system` (created by FluxCD boot
 - Ansible secrets in `ansible/group_vars/all.sops.yml`, loaded via `community.sops.sops` lookup
 - **K8s manifests are static YAML** — variables from `all.yml` do NOT flow into `infrastructure/` or `apps/` files. Some values (like MetalLB IP range) are intentionally duplicated as hardcoded values in both places.
 - The k3s systemd override template (`k3s-override.conf.j2`) completely replaces ExecStart, injecting all flags from `k3s_install_flags` variable
+
+## Flux Reconciliation
+
+When running `flux reconcile`, use a 15-second timeout. After that, check `flux get kustomizations` to see if it's still in progress or stuck on an error. Don't block waiting for full completion — reconciliation can take minutes if pods are slow to start.
+
+```bash
+# Run with short timeout, then check status
+timeout 15 flux reconcile kustomization apps --with-source || true
+flux get kustomizations
+```
+
+## Immutable Resource Changes
+
+PersistentVolume specs (and other immutable fields) can't be patched in-place. The Flux Kustomizations have `force: true`, which tells Flux to delete and recreate resources when immutable fields change. No need to manually delete PVs or rename them — just change the manifest and Flux handles it.
+
+Source: [FluxCD Kustomization docs](https://fluxcd.io/flux/components/kustomize/kustomizations/)
+
+## Phased Deployment
+
+When making changes that touch infrastructure dependencies (Cilium, NAS, etc.), deploy in phases to avoid cascading failures:
+
+1. **Comment out** dependent resources (apps, NAS) in their kustomization files
+2. **Push + reconcile** the infrastructure change (e.g., Cilium config)
+3. **Verify** the infrastructure change is healthy (`flux get kustomizations`, `kubectl get pods`)
+4. **Re-enable** dependencies one layer at a time, pushing + reconciling after each
+5. **Verify** each layer before enabling the next
+
+Never push everything at once — if something breaks mid-chain, the entire dependency tree stalls and debugging becomes harder.
+
+## Cilium Notes
+
+- `hostPort` requires `hostPort.enabled: true` in the Cilium HelmRelease values — it's disabled by default
 
 ## Coding Rules
 

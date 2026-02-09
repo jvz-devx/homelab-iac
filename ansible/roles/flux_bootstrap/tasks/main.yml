@@ -50,7 +50,7 @@
   ansible.builtin.shell: >
     kubectl create namespace flux-system
     --dry-run=client -o yaml | kubectl apply -f -
-  changed_when: true
+  changed_when: false
 
 - name: Deploy SOPS Age secret to cluster
   ansible.builtin.shell: |
@@ -59,7 +59,8 @@
       --namespace=flux-system \
       --from-file=age.agekey=/dev/stdin \
       --dry-run=client -o yaml | kubectl apply -f -
-  changed_when: true
+  changed_when: false
+  no_log: true
 
 - name: Check if Flux is already bootstrapped
   ansible.builtin.command: kubectl get deployment -n flux-system source-controller
@@ -80,6 +81,7 @@
   environment:
     GITHUB_TOKEN: "{{ github_token }}"
   when: flux_check.rc != 0
+  no_log: true
   register: flux_result
   retries: 2
   delay: 30

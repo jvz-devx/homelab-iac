@@ -25,8 +25,8 @@
     --swap {{ lxc_swap }}
     --rootfs {{ lxc_disk }}
     --net0 name=eth0,bridge=vmbr0,ip={{ lxc_ip }},gw={{ lxc_gateway }}
-    --nameserver 8.8.8.8
-    --searchdomain " "
+    --nameserver "10.43.0.10 8.8.8.8"
+    --searchdomain " "  # empty string prevents Proxmox from injecting a search domain that breaks DNS
     --features {{ lxc_features | join(',') }}
     --unprivileged {{ '0' if lxc_privileged else '1' }}
     --onboot {{ '1' if lxc_onboot else '0' }}
@@ -57,7 +57,7 @@
 
 - name: Ensure SSH directory exists
   ansible.builtin.command: pct exec {{ lxc_id }} -- mkdir -p /root/.ssh
-  changed_when: true
+  changed_when: false
 
 - name: Deploy SSH authorized key
   ansible.builtin.command: >
@@ -65,13 +65,13 @@
     'echo "{{ lxc_ssh_pubkey }}" > /root/.ssh/authorized_keys &&
      chmod 700 /root/.ssh &&
      chmod 600 /root/.ssh/authorized_keys'
-  changed_when: true
+  changed_when: false
 
 - name: Ensure /dev/kmsg exists (required for kubelet in LXC)
   ansible.builtin.command: >
     pct exec {{ lxc_id }} -- bash -c
     '[ -e /dev/kmsg ] || ln -s /dev/console /dev/kmsg'
-  changed_when: true
+  changed_when: false
 
 - name: Persist /dev/kmsg symlink across reboots
   ansible.builtin.command: >
@@ -82,7 +82,7 @@
     exit 0
     RCEOF
     chmod +x /etc/rc.local'
-  changed_when: true
+  changed_when: false
 
 - name: Verify SSH connectivity to LXC
   ansible.builtin.command: >

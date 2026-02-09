@@ -19,6 +19,30 @@ Proxmox (192.168.1.202)
 
 All k3s built-ins (traefik, servicelb, flannel) are disabled and replaced with declarative Flux-managed HelmReleases.
 
+## Prerequisites
+
+- [Nix](https://nixos.org/) — `nix develop` provides all CLI tools (ansible, kubectl, flux, helm, sops, age)
+- Proxmox host with API access
+- [Age](https://github.com/FiloSottile/age) key at `~/.config/sops/age/keys.txt` for SOPS decryption
+- GitHub PAT with repo scope (stored in `ansible/group_vars/all.sops.yml`)
+- SOPS-encrypted secrets populated (see [Secrets](#secrets))
+
+## Project Structure
+
+```
+ansible/                  # Provisioning playbooks and roles
+├── roles/
+│   ├── proxmox_lxc/      # LXC container creation
+│   ├── k3s_prereqs/      # Node prep (packages, kernel modules)
+│   ├── k3s_install/      # k3s installation and config
+│   └── flux_bootstrap/   # Cilium CNI + FluxCD bootstrap
+infrastructure/
+├── controllers/          # HelmReleases (cilium, metallb, traefik, cert-manager, cloudflared, nas)
+└── configs/              # Post-CRD resources (MetalLB pools, ClusterIssuers)
+apps/                     # Application workloads (deployed by Flux)
+clusters/homelab/         # Flux Kustomizations (dependency chain entry point)
+```
+
 ## Quick Start
 
 ```bash
@@ -35,7 +59,7 @@ ansible-playbook site.yml --tags k3s       # k3s only
 ansible-playbook site.yml --tags flux      # Cilium + Flux only
 ```
 
-## Disaster Recovery
+## Reprovisioning
 
 ```bash
 ansible-playbook site.yml   # Rebuilds everything; Flux reconciles workloads from Git
@@ -45,6 +69,14 @@ ansible-playbook site.yml   # Rebuilds everything; Flux reconciles workloads fro
 
 ```bash
 sops ansible/group_vars/all.sops.yml        # GitHub PAT, Cloudflare tokens
-sops infrastructure/cloudflared/secret.yaml  # Tunnel token
-sops infrastructure/nas/secret.yaml          # NAS credentials
+sops infrastructure/controllers/cloudflared/secret.yaml  # Tunnel token
+sops infrastructure/controllers/nas/secret.yaml          # NAS credentials
 ```
+
+## About
+
+This project exists to make my homelab fully reproducible. Every piece of infrastructure — from the LXC container to ingress routing — is defined in code, version-controlled, and automatically reconciled by FluxCD. There's no manual `kubectl apply` or SSH-and-edit. If the node dies, `ansible-playbook site.yml` rebuilds the entire stack and Flux restores all workloads from Git. The stack choices (Cilium over flannel, MetalLB over klipper, Traefik via Helm over k3s built-in) prioritize declarative configuration and GitOps manageability over convenience defaults.
+
+## License
+
+[MIT](LICENSE)

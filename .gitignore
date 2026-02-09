@@ -2,6 +2,9 @@
 *.age.key
 keys.txt
 
+# Environment
+.env
+
 # Kubeconfig
 kubeconfig
 
@@ -10,10 +13,6 @@ kubeconfig
 
 # Ansible
 *.retry
-
-# Terraform (future)
-.terraform/
-*.tfstate*
 
 # Editor
 .vscode/

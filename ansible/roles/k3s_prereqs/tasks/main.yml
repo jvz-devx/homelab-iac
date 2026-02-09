@@ -41,6 +41,7 @@
   community.general.modprobe:
     name: br_netfilter
     state: present
+  # br_netfilter may already be compiled into the kernel in LXC environments
   ignore_errors: true
 
 - name: Ensure br_netfilter loads on boot

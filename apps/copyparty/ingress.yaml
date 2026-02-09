@@ -1,0 +1,25 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: copyparty
+  namespace: copyparty
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: files.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: copyparty
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - files.jensvanzutphen.com
+      secretName: copyparty-tls

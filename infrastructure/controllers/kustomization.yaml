@@ -16,8 +16,8 @@ resources:
   - cert-manager/helmrelease.yaml
   # Cloudflare Tunnel
   - cloudflared/namespace.yaml
-  - cloudflared/deployment.yaml
   - cloudflared/secret.yaml
+  - cloudflared/deployment.yaml
   # NAS storage
   - nas/namespace.yaml
   - nas/secret.yaml

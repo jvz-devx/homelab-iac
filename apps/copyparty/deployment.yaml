@@ -1,0 +1,92 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: copyparty-nas
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=3
+    - port=2049
+    - mountport=2049
+    - tcp
+    - nolock
+  nfs:
+    server: 192.168.1.100
+    path: /
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copyparty-nas
+  namespace: copyparty
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Ti
+  volumeName: copyparty-nas
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copyparty
+  namespace: copyparty
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: copyparty
+  template:
+    metadata:
+      labels:
+        app: copyparty
+    spec:
+      containers:
+        - name: copyparty
+          image: ghcr.io/9001/copyparty-ac:latest
+          args:
+            - -a
+            - jens:$(COPYPARTY_PASSWORD)
+            - -v
+            - /w::A,jens
+          env:
+            - name: COPYPARTY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: copyparty-credentials
+                  key: password
+          ports:
+            - containerPort: 3923
+          securityContext:
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3923
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3923
+            initialDelaySeconds: 5
+          volumeMounts:
+            - name: nas
+              mountPath: /w
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: nas
+          persistentVolumeClaim:
+            claimName: copyparty-nas

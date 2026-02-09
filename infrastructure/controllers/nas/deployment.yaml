@@ -1,6 +1,8 @@
 ---
-# rclone-based FTP mount exposed as a PV
-# Mirrors the NixOS nas.nix config: FTP to 192.168.1.1, user admin
+# FTP→NFS conversion layer: the NAS (192.168.1.1) only speaks FTP,
+# but k8s volumes need NFS. rclone bridges the gap by connecting to
+# the NAS over FTP and re-serving the files as NFS on port 2049.
+# The PV/PVC below are provisioned for future workloads to consume.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -8,6 +10,8 @@ metadata:
   namespace: storage
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: rclone-nas
@@ -16,9 +20,10 @@ spec:
       labels:
         app: rclone-nas
     spec:
+      hostNetwork: true
       containers:
         - name: rclone
-          image: rclone/rclone:latest
+          image: rclone/rclone:1.73.0
           args:
             - serve
             - nfs
@@ -44,6 +49,17 @@ spec:
                 secretKeyRef:
                   name: nas-ftp-credentials
                   key: password
+          securityContext:
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            tcpSocket:
+              port: 2049
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: 2049
+            initialDelaySeconds: 5
           ports:
             - containerPort: 2049
               name: nfs
@@ -79,11 +95,15 @@ spec:
     storage: 1Ti
   accessModes:
     - ReadWriteMany
-  nfs:
-    server: nas-nfs.storage.svc.cluster.local
-    path: /
   mountOptions:
     - nfsvers=3
+    - port=2049
+    - mountport=2049
+    - tcp
+    - nolock
+  nfs:
+    server: 192.168.1.100
+    path: /
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

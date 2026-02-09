@@ -1,5 +1,5 @@
 creation_rules:
-  - path_regex: \.sops\.yml$
+  - path_regex: \.sops\.(yml|yaml)$
     age: age13mpnc9r9ykh406nwqzgtqketnvkpnxj02sx3qv5pae4txzynvscsjpum3s
   - path_regex: secret\.yaml$
     encrypted_regex: ^(data|stringData)$

@@ -9,6 +9,7 @@ repos:
         exclude: >-
           (?x)^(
             infrastructure/controllers/(cloudflared|nas)/secret\.yaml|
+            apps/copyparty/secret\.yaml|
             (infrastructure/configs|apps/cv-web)/ghcr-auth-secret\.yaml|
             ansible/group_vars/all\.sops\.yml
           )$
@@ -24,6 +25,7 @@ repos:
         exclude: >-
           (?x)^(
             infrastructure/controllers/(cloudflared|nas)/secret\.yaml|
+            apps/copyparty/secret\.yaml|
             (infrastructure/configs|apps/cv-web)/ghcr-auth-secret\.yaml|
             ansible/group_vars/all\.sops\.yml
           )$
@@ -34,4 +36,4 @@ repos:
         name: Check SOPS files are encrypted
         entry: scripts/hooks/sops-check.sh
         language: script
-        files: (secret\.yaml$|\.sops\.yml$)
+        files: (secret\.yaml$|\.sops\.(yml|yaml)$)

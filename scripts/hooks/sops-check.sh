@@ -12,7 +12,7 @@ for file in "$@"; do
   fi
 
   # .sops.yml files (Ansible secrets) should be fully encrypted — check for sops metadata
-  if [[ "$file" == *.sops.yml ]]; then
+  if [[ "$file" == *.sops.yml ]] || [[ "$file" == *.sops.yaml ]]; then
     if ! grep -q "sops:" "$file" || ! grep -q "ENC\[AES256_GCM," "$file"; then
       echo "ERROR: $file appears to contain unencrypted data"
       echo "  Run: sops -e -i $file"

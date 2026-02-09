@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,10 +23,25 @@ spec:
         - name: ghcr-auth
       containers:
         - name: cv-web
-          image: ghcr.io/jvz-devx/cv-web:main-4-1aba3d670c8eff81ed759ff6dd3ab3631e7b9529 # {"$imagepolicy": "flux-system:cv-web"}
+          image: ghcr.io/jvz-devx/cv-web:main-5-9e880a17d17ac84e76a43bc40bd3d658dea55cca # {"$imagepolicy": "flux-system:cv-web"}
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
+          securityContext:
+            # runAsNonRoot: true  # disabled — cv-web image runs as root
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 3
           resources:
             requests:
               memory: "64Mi"

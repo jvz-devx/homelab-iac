@@ -22,7 +22,7 @@ spec:
         - name: ghcr-auth
       containers:
         - name: cv-web
-          image: ghcr.io/jvz-devx/cv-web:main-6-957bc2930d84558b39c598518e699c00c8e8f96d # {"$imagepolicy": "flux-system:cv-web"}
+          image: ghcr.io/jvz-devx/cv-web:main-7-ff6a56c86282df839d83a083b9de9c3afceafc83 # {"$imagepolicy": "flux-system:cv-web"}
           imagePullPolicy: Always
           ports:
             - containerPort: 3000

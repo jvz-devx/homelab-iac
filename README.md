@@ -73,6 +73,16 @@ sops infrastructure/controllers/cloudflared/secret.yaml  # Tunnel token
 sops infrastructure/controllers/nas/secret.yaml          # NAS credentials
 ```
 
+## Termix
+
+Termix is deployed as a LAN-only LoadBalancer service for browser-based SSH access.
+
+- Namespace: `termix`
+- Service IP: `192.168.1.111`
+- URL: `http://192.168.1.111`
+- App manifests: `apps/termix/`
+- Bootstrap notes: `apps/termix/README.md`
+
 ## About
 
 This project exists to make my homelab fully reproducible. Every piece of infrastructure — from the LXC container to ingress routing — is defined in code, version-controlled, and automatically reconciled by FluxCD. There's no manual `kubectl apply` or SSH-and-edit. If the node dies, `ansible-playbook site.yml` rebuilds the entire stack and Flux restores all workloads from Git. The stack choices (Cilium over flannel, MetalLB over klipper, Traefik via Helm over k3s built-in) prioritize declarative configuration and GitOps manageability over convenience defaults.

@@ -19,6 +19,8 @@ Proxmox (192.168.1.202)
 
 All k3s built-ins (traefik, servicelb, flannel) are disabled and replaced with declarative Flux-managed HelmReleases.
 
+Current user apps intended on the cluster: copyparty and experimental termix only.
+
 ## Prerequisites
 
 - [Nix](https://nixos.org/) — `nix develop` provides all CLI tools (ansible, kubectl, flux, helm, sops, age)
@@ -75,11 +77,12 @@ sops infrastructure/controllers/nas/secret.yaml          # NAS credentials
 
 ## Termix
 
-Termix is deployed as a LAN-only LoadBalancer service for browser-based SSH access.
+Termix is deployed as a LAN-only browser-based SSH access pod.
 
 - Namespace: `termix`
-- Service IP: `192.168.1.111`
-- URL: `http://192.168.1.111`
+- URL: `http://192.168.1.100:4090`
+- Runs as a fixed pod on `k3s-node`
+- Persists data at `/var/lib/termix-data` inside the LXC
 - App manifests: `apps/termix/`
 - Bootstrap notes: `apps/termix/README.md`
 

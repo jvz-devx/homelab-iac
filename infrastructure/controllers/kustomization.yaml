@@ -14,10 +14,6 @@ resources:
   # Certificate management
   - cert-manager/namespace.yaml
   - cert-manager/helmrelease.yaml
-  # Cloudflare Tunnel
-  - cloudflared/namespace.yaml
-  - cloudflared/secret.yaml
-  - cloudflared/deployment.yaml
   # NAS storage
   - nas/namespace.yaml
   - nas/secret.yaml

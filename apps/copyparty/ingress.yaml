@@ -1,9 +1,10 @@
 ---
 # Traffic model: LAN-only via public DNS (matches termix).
 #   DNS: files.jensvanzutphen.com → A 192.168.1.110 (Traefik LB, RFC1918).
-#   DNS record is managed automatically by external-dns — the opt-in
-#   annotation below is the trigger. Resolvable from anywhere; only
-#   reachable from the LAN (private IP, no tunnel, no port-forward).
+#   DNS record is managed automatically by external-dns — every Ingress
+#   under jensvanzutphen.com is in scope by default. Resolvable from
+#   anywhere; only reachable from the LAN (private IP, no tunnel, no
+#   port-forward).
 #   TLS: Let's Encrypt via DNS-01 (letsencrypt-dns01), so no inbound
 #   HTTP from the ACME server is needed. Switched from HTTP-01 after
 #   the Cloudflare Tunnel (removed in cba9cea) made HTTP-01 unreachable.
@@ -14,7 +15,6 @@ metadata:
   namespace: copyparty
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
-    external-dns.alpha.kubernetes.io/controller: external-dns
 spec:
   ingressClassName: traefik
   rules:

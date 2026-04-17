@@ -26,8 +26,10 @@ spec:
               value: "4090"
             - name: DATA_DIR
               value: /app/data
-            - name: ENABLE_GUACAMOLE
-              value: "false"
+            - name: GUACD_HOST
+              value: guacd
+            - name: GUACD_PORT
+              value: "4822"
             - name: PUID
               value: "1000"
             - name: PGID

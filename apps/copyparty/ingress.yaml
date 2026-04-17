@@ -1,16 +1,20 @@
 ---
-# Traffic model: public via Cloudflare Tunnel.
-#   DNS: files.jensvanzutphen.com → CNAME to <tunnel>.cfargotunnel.com (proxied).
-#   Reachable from anywhere on the internet; Cloudflare terminates TLS at
-#   its edge, then tunnels to this Ingress inside the cluster.
-#   TLS on the Ingress: Let's Encrypt via HTTP-01 (letsencrypt-production).
+# Traffic model: LAN-only via public DNS (matches termix).
+#   DNS: files.jensvanzutphen.com → A 192.168.1.110 (Traefik LB, RFC1918).
+#   DNS record is managed automatically by external-dns — the opt-in
+#   annotation below is the trigger. Resolvable from anywhere; only
+#   reachable from the LAN (private IP, no tunnel, no port-forward).
+#   TLS: Let's Encrypt via DNS-01 (letsencrypt-dns01), so no inbound
+#   HTTP from the ACME server is needed. Switched from HTTP-01 after
+#   the Cloudflare Tunnel (removed in cba9cea) made HTTP-01 unreachable.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: copyparty
   namespace: copyparty
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-production
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/controller: external-dns
 spec:
   ingressClassName: traefik
   rules:

@@ -1,4 +1,9 @@
 ---
+# Traffic model: public via Cloudflare Tunnel.
+#   DNS: files.jensvanzutphen.com → CNAME to <tunnel>.cfargotunnel.com (proxied).
+#   Reachable from anywhere on the internet; Cloudflare terminates TLS at
+#   its edge, then tunnels to this Ingress inside the cluster.
+#   TLS on the Ingress: Let's Encrypt via HTTP-01 (letsencrypt-production).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

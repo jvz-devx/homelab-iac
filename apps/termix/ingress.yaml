@@ -1,0 +1,30 @@
+---
+# Traffic model: LAN-only via public DNS.
+#   DNS: termix.jensvanzutphen.com → 192.168.1.110 (Traefik LB, RFC1918).
+#   Resolvable from anywhere; reachable only from the LAN.
+#   TLS: Let's Encrypt via DNS-01 (cert-manager letsencrypt-dns01),
+#   so no inbound HTTP from the ACME server is needed.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: termix
+  namespace: termix
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: termix.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: termix
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - termix.jensvanzutphen.com
+      secretName: termix-tls

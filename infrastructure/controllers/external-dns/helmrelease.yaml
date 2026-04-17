@@ -15,11 +15,15 @@ spec:
 # trust the ownership model, flip this to "sync" for full declarative
 # lifecycle (Ingress removed → record removed).
 #
-# Scope is opt-in via annotation, not opt-out: only Ingresses carrying the
-# annotation `external-dns.alpha.kubernetes.io/controller: external-dns`
-# are reconciled. That keeps tunnel-managed hosts (and anything else where
-# DNS is owned elsewhere) safely out of the picture until you explicitly
-# choose otherwise.
+# Scope is bounded by domainFilters alone: every Ingress with a host under
+# jensvanzutphen.com is a candidate. That matches the reality that this
+# cluster is the canonical owner of LAN-facing sub-records for that zone.
+# To exclude a specific Ingress (e.g. a hostname whose DNS is owned by a
+# Cloudflare Tunnel or managed externally), set on its metadata:
+#   annotations:
+#     external-dns.alpha.kubernetes.io/controller: dns-ignore
+# Any value OTHER than the built-in "dns-controller" causes external-dns
+# to skip the resource.
 #
 # txtOwnerId tags the TXT registry record that external-dns writes next to
 # each managed record. If a second external-dns instance is ever spun up
@@ -61,12 +65,9 @@ spec:
       - jensvanzutphen.com
     policy: upsert-only
     txtOwnerId: k3s-homelab
-    # Only manage Ingresses that explicitly opt in. New apps default to
-    # "external-dns ignores me" until you add the annotation, which
-    # prevents accidental clobbering of externally-managed records
-    # (e.g. the Cloudflare Tunnel CNAMEs).
-    extraArgs:
-      - --annotation-filter=external-dns.alpha.kubernetes.io/controller=external-dns
+    # No --annotation-filter: all Ingresses under domainFilters are fair
+    # game. Use the "controller" annotation on an individual Ingress to
+    # opt out (see header comment above).
     # Reasonable polling; the cluster isn't changing Ingresses minute by
     # minute so 5m keeps Cloudflare API traffic low.
     interval: 5m

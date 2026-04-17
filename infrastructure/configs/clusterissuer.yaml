@@ -31,11 +31,12 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-dns01
     solvers:
+      # The apiTokenSecretRef is resolved in the cert-manager namespace by
+      # default — there's intentionally no namespace field on this selector.
       - dns01:
           cloudflare:
             apiTokenSecretRef:
               name: cloudflare-api-token
-              namespace: cert-manager
               key: api-token
         selector:
           dnsZones:

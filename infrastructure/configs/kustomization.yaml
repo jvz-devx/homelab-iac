@@ -8,5 +8,3 @@ resources:
   - clusterissuer.yaml
   # GHCR authentication for Flux image scanning
   - ghcr-auth-secret.yaml
-  # Flux image automation (ImageRepository, ImagePolicy, ImageUpdateAutomation)
-  - image-automation.yaml

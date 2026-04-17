@@ -136,17 +136,43 @@ PersistentVolume specs (and other immutable fields) can't be patched in-place. T
 
 Source: [FluxCD Kustomization docs](https://fluxcd.io/flux/components/kustomize/kustomizations/)
 
-## Phased Deployment
+## Phased Deployment (BLOCKING)
 
-When making changes that touch infrastructure dependencies (Cilium, NAS, etc.), deploy in phases to avoid cascading failures:
+**Hard rule: never push a commit that crosses Flux Kustomization boundaries.** The cluster has three layers reconciled in order via `dependsOn`:
 
-1. **Comment out** dependent resources (apps, NAS) in their kustomization files
-2. **Push + reconcile** the infrastructure change (e.g., Cilium config)
-3. **Verify** the infrastructure change is healthy (`flux get kustomizations`, `kubectl get pods`)
-4. **Re-enable** dependencies one layer at a time, pushing + reconciling after each
-5. **Verify** each layer before enabling the next
+1. `infrastructure-controllers` — `infrastructure/controllers/**`
+2. `infrastructure-configs` — `infrastructure/configs/**` (depends on 1)
+3. `apps` — `apps/**` (depends on 1)
 
-Never push everything at once — if something breaks mid-chain, the entire dependency tree stalls and debugging becomes harder.
+A single commit that touches more than one layer means Flux reconciles the downstream layer before the upstream one has finished. Anything in the downstream layer that references a Secret / CRD / ClusterIssuer / Service created upstream will flap, stall, or deadlock the whole tree.
+
+### Pre-push self-audit (run this literally, every time)
+
+Before any `git commit` that will be pushed, run:
+
+```bash
+git diff --cached --name-only
+```
+
+Bucket each path into one of the three layers above. **If the diff spans more than one layer, STOP** — split into one commit per layer and push them sequentially, verifying each before the next.
+
+### Triggers that always require a split (non-exhaustive)
+
+- Adding a CRD (ClusterIssuer, IPAddressPool, Certificate, HelmRelease, etc.) **and** a resource that uses it
+- Adding a Secret in `cert-manager` / `metallb` / `flux-system` / any controller namespace **and** a config that references it
+- Changing an app's `Service.type` or `loadBalancerIP` **and** adding/removing its Ingress in the same diff
+- Replacing one networking / storage / ingress mechanism while the old one is still referenced by an app
+
+If you're not sure whether two changes belong in the same commit: they don't. Splitting costs a minute; recovering from a multi-layer stall costs much more.
+
+### Per-layer flow
+
+1. Commit + push one layer
+2. `timeout 15 flux reconcile kustomization <kustomization-name> --with-source || true`
+3. Verify with `flux get kustomizations` plus a resource-specific check — e.g. `kubectl get clusterissuer <name> -o jsonpath='{.status.conditions[0]}{"\n"}'`, `kubectl -n <ns> get secret <name>`, `kubectl -n <ns> get certificate <name>`
+4. Only once the previous layer is healthy, commit + push the next layer
+
+**Do not wave this away as overkill for a small change.** The rule is about the direction of references, not about the size of the diff. Even a one-line ClusterIssuer change paired with an Ingress annotation in the same commit is two layers — split it.
 
 ## Cilium Notes
 
@@ -158,7 +184,8 @@ Never push everything at once — if something breaks mid-chain, the entire depe
 - **Single source of truth**: all variables live in `ansible/group_vars/all.yml`. Ansible roles and k8s manifests reference these.
 - **Idempotent playbooks**: every Ansible role must be safe to re-run. Use `creates:`, `when:`, and `changed_when:` properly.
 - **SOPS for secrets**: use `sops -e -i` to encrypt. Never commit plaintext secrets. `.sops.yaml` has creation rules.
-- **No git commit/push**: you may `git add` but never commit or push.
+- **No git commit/push without explicit OK**: you may `git add` freely, but never `git commit` or `git push` unless the user has explicitly approved that push. Asking counts as having to wait.
+- **Phased pushes (BLOCKING)**: any commit that spans Flux Kustomization layers (`infrastructure/controllers/`, `infrastructure/configs/`, `apps/`) must be split into one commit per layer and pushed sequentially. See "Phased Deployment (BLOCKING)" above for the pre-push self-audit and concrete triggers. Running this self-audit is not optional — do it before every push.
 - **Tags for stages**: `proxmox`, `k3s`, `flux` — always preserve the tag structure in `site.yml`.
 
 ## Network

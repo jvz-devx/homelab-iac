@@ -1,10 +1,52 @@
 # Termix — deferred work
 
-Two independent cleanups queued for later. They don't depend on each other — pick whichever fits the moment.
+Three independent cleanups queued for later. They don't depend on each other — pick whichever fits the moment. **Do any of them while physically (or at least reliably) able to reach pc-02** — if external-dns or cert-manager misbehaves during a swap, you don't want to lose Termix access for the rest of the day.
 
 ---
 
-## 1. Retire the 192.168.1.111 LoadBalancer IP
+## 1. Let external-dns adopt the termix A record
+
+### Why
+
+When external-dns was introduced, the `termix.jensvanzutphen.com` A record already existed (we created it manually before the controller was in place). external-dns' `upsert-only` policy never adopts pre-existing records — it only writes a TXT ownership tag alongside records it CREATES itself. So right now the termix record sits there unowned: external-dns sees it, confirms it matches the desired endpoint, and leaves it alone.
+
+Practical consequence: if you later delete the termix Ingress from the repo, the DNS record stays behind (no one to clean it up).
+
+### Fix
+
+One `cf` call, then wait. Delete the unowned record; external-dns recreates it within a few minutes with a TXT ownership tag. Same content, same IP — no change visible to anyone except the Cloudflare zone metadata.
+
+```
+# Find the id
+cf dns records list 9c95c564e5855e0e653867092d5723a4 --fields id,name \
+  | jq '.[] | select(.name == "termix.jensvanzutphen.com")'
+
+# Delete it (replace <id> with the above)
+cf dns records delete <id> --zone jensvanzutphen.com
+
+# Poke external-dns to speed things up (default interval is 5m)
+nix develop --command kubectl -n external-dns rollout restart deploy/external-dns
+
+# Verify: the record reappears + a TXT registry record appears next to it
+cf dns records list 9c95c564e5855e0e653867092d5723a4 --fields name,type,content \
+  | jq '.[] | select(.name | contains("termix"))'
+```
+
+Expected after ~1 minute:
+- `termix.jensvanzutphen.com A 192.168.1.110` (recreated by external-dns)
+- `a-termix.jensvanzutphen.com TXT "heritage=external-dns,…/resource=ingress/termix/termix"` (new)
+
+### Risk / timing
+
+There is a window (seconds to a couple of minutes) between the `cf delete` and external-dns writing the new record during which `termix.jensvanzutphen.com` doesn't resolve. Your existing HTTP path at `http://192.168.1.111` is unaffected (Service is still LoadBalancer there), so if you've got that tab open you don't lose access. But if you've already completed task 2 below (retire the 111 LB) or task 3 (NAS migration) first, then the hostname is your only way in — in which case do this from the LAN, with a backup shell ready.
+
+### Rollback
+
+If external-dns fails to recreate the record within a few minutes: manually recreate it with `cf dns records create --zone jensvanzutphen.com --body '{"type":"A","name":"termix","content":"192.168.1.110","proxied":false,"ttl":1}'`. Same content as before; no data or cert impact.
+
+---
+
+## 2. Retire the 192.168.1.111 LoadBalancer IP
 
 ### Why
 
@@ -41,7 +83,7 @@ Revert `service.yaml` (keep `type: LoadBalancer` + the `loadBalancerIP`), push, 
 
 ---
 
-## 2. Migrate PVC from local-path to NAS-backed storage
+## 3. Migrate PVC from local-path to NAS-backed storage
 
 ### Why
 
@@ -67,14 +109,14 @@ If you're running Claude Code in a `tmux` session started by Termix's SSH backen
 
 ### Plan
 
-#### 2.1 Add the new PV + PVC alongside the old one (declarative)
+#### 3.1 Add the new PV + PVC alongside the old one (declarative)
 
 Add a new PV + PVC to the app, in addition to the existing `termix-data` PVC. Following the `copyparty-nas` pattern, but scoped to a `termix/` subdirectory on the NAS so copyparty and termix don't share a flat root:
 
 ```yaml
 # apps/termix/pvc.yaml — replace contents
 ---
-# Old local-path PVC — kept during migration, removed in 2.5.
+# Old local-path PVC — kept during migration, removed in 3.5.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -123,16 +165,16 @@ Commit, push, reconcile:
 kubectl -n termix get pvc    # both PVCs should be Bound
 ```
 
-#### 2.2 Scale Termix down
+#### 3.2 Scale Termix down
 
 ```
 kubectl -n termix scale deploy termix --replicas=0
 kubectl -n termix get pods -w   # wait until the pod is Terminated
 ```
 
-Termix is offline from this point until 2.4 completes.
+Termix is offline from this point until 3.4 completes.
 
-#### 2.3 Copy data with a helper pod
+#### 3.3 Copy data with a helper pod
 
 ```
 kubectl -n termix apply -f - <<'EOF'
@@ -180,7 +222,7 @@ kubectl -n termix run verify --rm -it --restart=Never --image=alpine:3.21 \
 
 If ANY of this looks wrong (empty directory, missing DB file, size 0): **stop**. Do not delete the old PVC. Scale Termix back up with the old claim and investigate before retrying.
 
-#### 2.4 Point Termix at the new PVC + scale up
+#### 3.4 Point Termix at the new PVC + scale up
 
 Edit `apps/termix/deployment.yaml`:
 
@@ -205,7 +247,7 @@ kubectl -n termix scale deploy termix --replicas=1
 kubectl -n termix get pods -w
 ```
 
-#### 2.5 Visually verify in Termix, then clean up
+#### 3.5 Visually verify in Termix, then clean up
 
 - Open `https://termix.jensvanzutphen.com`
 - Log in with your existing user (the one that was there before the migration)
@@ -221,9 +263,9 @@ Commit, push, reconcile. Flux removes the old `termix-data` PVC. Because local-p
 
 ### Rollback
 
-At any point before 2.5 (clean-up), recovery is trivial: edit `apps/termix/deployment.yaml` to point `claimName` back at `termix-data`, reconcile, scale up. The old PVC was never touched, still bound to its local PV, still has the original data. The NAS PVC can stay around as an empty-but-Bound resource or be deleted.
+At any point before 3.5 (clean-up), recovery is trivial: edit `apps/termix/deployment.yaml` to point `claimName` back at `termix-data`, reconcile, scale up. The old PVC was never touched, still bound to its local PV, still has the original data. The NAS PVC can stay around as an empty-but-Bound resource or be deleted.
 
-After 2.5, the old PV is gone — rollback requires restoring from whatever backup you have. Which is why 2.5 only happens after visual verification in the UI.
+After 3.5, the old PV is gone — rollback requires restoring from whatever backup you have. Which is why 2.5 only happens after visual verification in the UI.
 
 ### Nice-to-haves (not required for correctness)
 

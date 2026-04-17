@@ -15,6 +15,10 @@ resources:
   - cert-manager/namespace.yaml
   - cert-manager/helmrelease.yaml
   - cert-manager/secret.yaml
+  # DNS record automation (Cloudflare)
+  - external-dns/namespace.yaml
+  - external-dns/secret.yaml
+  - external-dns/helmrelease.yaml
   # NAS storage
   - nas/namespace.yaml
   - nas/secret.yaml

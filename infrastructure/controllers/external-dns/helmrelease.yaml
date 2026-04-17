@@ -1,0 +1,80 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  interval: 24h
+  url: https://kubernetes-sigs.github.io/external-dns/
+---
+# external-dns — reconciles DNS records in Cloudflare from k8s resources.
+#
+# Policy is "upsert-only" intentionally: the controller CREATES and UPDATES
+# records but never DELETES them. Once we've lived with that for a while and
+# trust the ownership model, flip this to "sync" for full declarative
+# lifecycle (Ingress removed → record removed).
+#
+# Scope is opt-in via annotation, not opt-out: only Ingresses carrying the
+# annotation `external-dns.alpha.kubernetes.io/controller: external-dns`
+# are reconciled. That keeps tunnel-managed hosts (and anything else where
+# DNS is owned elsewhere) safely out of the picture until you explicitly
+# choose otherwise.
+#
+# txtOwnerId tags the TXT registry record that external-dns writes next to
+# each managed record. If a second external-dns instance is ever spun up
+# with a different owner id it will refuse to touch records this cluster
+# owns — which is the behaviour we want.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: external-dns
+      version: "1.20.x"
+      sourceRef:
+        kind: HelmRepository
+        name: external-dns
+        namespace: external-dns
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    provider:
+      name: cloudflare
+    env:
+      - name: CF_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: cloudflare-api-token
+            key: api-token
+    sources:
+      - ingress
+    domainFilters:
+      - jensvanzutphen.com
+    policy: upsert-only
+    txtOwnerId: k3s-homelab
+    # Only manage Ingresses that explicitly opt in. New apps default to
+    # "external-dns ignores me" until you add the annotation, which
+    # prevents accidental clobbering of externally-managed records
+    # (e.g. the Cloudflare Tunnel CNAMEs).
+    extraArgs:
+      - --annotation-filter=external-dns.alpha.kubernetes.io/controller=external-dns
+    # Reasonable polling; the cluster isn't changing Ingresses minute by
+    # minute so 5m keeps Cloudflare API traffic low.
+    interval: 5m
+    logLevel: info
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi

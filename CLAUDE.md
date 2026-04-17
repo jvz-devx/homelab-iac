@@ -38,10 +38,11 @@ ansible-playbook site.yml --tags flux      # Cilium + Flux only
 # Standalone Flux bootstrap (k3s must be running)
 ansible-playbook flux-bootstrap.yml
 
-# Force Flux reconciliation
-flux reconcile kustomization infrastructure-controllers
-flux reconcile kustomization infrastructure-configs
-flux reconcile kustomization apps
+# Cluster operations (run inside `nix develop`)
+./scripts/fetch-kubeconfig.sh          # one-time per workstation: pulls k3s kubeconfig to $PWD/kubeconfig
+./scripts/reconcile.sh                 # git source + full chain (controllers → configs → apps) in order
+./scripts/reconcile.sh apps            # reconcile just one Kustomization
+./scripts/reconcile.sh -s              # only re-pull the git source
 
 # Check cluster status
 kubectl get nodes

@@ -34,6 +34,9 @@
             pre-commit install --allow-missing-config >/dev/null 2>&1 || true
             echo "Homelab IaC devShell loaded"
             echo "Tools: ansible, flux, kubectl, helm, sops, age, cloudflared, k9s"
+            if [[ ! -f "$KUBECONFIG" ]]; then
+              echo "⚠ no kubeconfig at $KUBECONFIG — run ./scripts/fetch-kubeconfig.sh once"
+            fi
           '';
         };
       });

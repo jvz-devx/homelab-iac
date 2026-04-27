@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resonance-bot
+  namespace: resonance
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resonance-bot
+  template:
+    metadata:
+      labels:
+        app: resonance-bot
+    spec:
+      initContainers:
+        - name: wait-for-redis
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z redis 6379; do sleep 2; done
+        - name: wait-for-pot-server
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z pot-server 4416; do sleep 2; done
+      containers:
+        - name: bot
+          image: ghcr.io/jvz-devx/resonance:latest
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: resonance-env
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1
+              memory: 512Mi

@@ -84,3 +84,42 @@
   when: tailscale_status.rc == 0 and (tailscale_status.stdout | from_json).BackendState == "Running"
   changed_when: false
   no_log: true
+
+- name: Install explicit cross-cluster route helper
+  ansible.builtin.copy:
+    dest: /usr/local/sbin/tailscale-cross-cluster-routes
+    mode: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      {% for route in tailscale_static_routes | default([]) %}
+      ip route replace {{ route }} dev tailscale0
+      {% endfor %}
+  when: tailscale_static_routes | default([]) | length > 0
+
+- name: Install explicit cross-cluster route service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/tailscale-cross-cluster-routes.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Install explicit Tailscale cross-cluster routes
+      Wants=tailscaled.service
+      After=tailscaled.service network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/sbin/tailscale-cross-cluster-routes
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+  when: tailscale_static_routes | default([]) | length > 0
+
+- name: Enable explicit cross-cluster route service
+  ansible.builtin.systemd:
+    name: tailscale-cross-cluster-routes
+    enabled: true
+    daemon_reload: true
+    state: started
+  when: tailscale_static_routes | default([]) | length > 0

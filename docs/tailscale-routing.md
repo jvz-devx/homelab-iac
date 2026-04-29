@@ -8,6 +8,12 @@ clusters without joining the Kubernetes control planes.
 | Homelab | `homelab-k3s` | `10.42.0.0/16`, `10.43.0.0/16` | No |
 | Hetzner | `hetzner-k3s` | `10.52.0.0/16`, `10.53.0.0/16` | Yes |
 
+The nodes deliberately do not use Tailscale's `--accept-routes=true`. This
+tailnet already has other subnet routes, including a LAN route for
+`192.168.1.0/24`; accepting all routes on the homelab node breaks LAN return
+traffic. Instead, Ansible installs explicit kernel routes for only the remote
+cluster CIDRs after `tailscaled` starts.
+
 ## Tailnet Policy
 
 Route and exit-node approval should be configured before running the Ansible
@@ -47,7 +53,7 @@ tofu -chdir=terraform/hetzner apply -var "admin_cidrs=[\"${MY_IP}/32\"]"
 cd ansible
 ansible-playbook site.yml --tags proxmox
 
-# Configure both subnet routers.
+# Configure both subnet routers and explicit remote-cluster routes.
 ansible-playbook site.yml --tags tailscale
 ansible-playbook -i inventory/hetzner.yml hetzner.yml --tags tailscale
 ```

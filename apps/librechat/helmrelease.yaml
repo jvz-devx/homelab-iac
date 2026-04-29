@@ -145,8 +145,7 @@ spec:
       imageVolume:
         enabled: true
         size: 10Gi
-        accessModes:
-          - ReadWriteOnce
+        accessModes: ReadWriteOnce
 
     librechat-rag-api:
       enabled: true

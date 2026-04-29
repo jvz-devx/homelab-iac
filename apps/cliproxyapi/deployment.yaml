@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cliproxyapi
+  namespace: cliproxyapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cliproxyapi
+  template:
+    metadata:
+      labels:
+        app: cliproxyapi
+    spec:
+      containers:
+        - name: cliproxyapi
+          image: eceasy/cli-proxy-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8317
+          volumeMounts:
+            - name: config
+              mountPath: /CLIProxyAPI/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: auth
+              mountPath: /root/.cli-proxy-api
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+      volumes:
+        - name: config
+          secret:
+            secretName: cliproxyapi-config
+        - name: auth
+          persistentVolumeClaim:
+            claimName: cliproxyapi-auth

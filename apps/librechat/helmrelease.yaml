@@ -16,7 +16,8 @@ metadata:
   namespace: librechat
 spec:
   interval: 24h
-  url: https://charts.bitnami.com/bitnami
+  type: oci
+  url: oci://registry-1.docker.io/bitnamicharts
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -39,22 +40,6 @@ spec:
   upgrade:
     remediation:
       retries: 3
-  postRenderers:
-    - kustomize:
-        patches:
-          - target:
-              version: v1
-              kind: ConfigMap
-              name: librechat-librechat-configenv
-            patch: |-
-              - op: remove
-                path: /data/CREDS_KEY
-              - op: remove
-                path: /data/CREDS_IV
-              - op: remove
-                path: /data/JWT_SECRET
-              - op: remove
-                path: /data/JWT_REFRESH_SECRET
   values:
     global:
       security:
@@ -107,6 +92,22 @@ spec:
   upgrade:
     remediation:
       retries: 3
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              version: v1
+              kind: ConfigMap
+              name: librechat-librechat-configenv
+            patch: |-
+              - op: remove
+                path: /data/CREDS_KEY
+              - op: remove
+                path: /data/CREDS_IV
+              - op: remove
+                path: /data/JWT_SECRET
+              - op: remove
+                path: /data/JWT_REFRESH_SECRET
   values:
     global:
       librechat:

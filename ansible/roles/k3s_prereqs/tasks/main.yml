@@ -26,17 +26,6 @@
     enabled: true
     state: started
 
-- name: Set kernel parameters for k3s
-  ansible.posix.sysctl:
-    name: "{{ item.key }}"
-    value: "{{ item.value }}"
-    sysctl_set: true
-    reload: true
-  loop:
-    - { key: "net.bridge.bridge-nf-call-iptables", value: "1" }
-    - { key: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
-    - { key: "net.ipv4.ip_forward", value: "1" }
-
 - name: Load br_netfilter module
   community.general.modprobe:
     name: br_netfilter
@@ -49,6 +38,17 @@
     content: "br_netfilter\n"
     dest: /etc/modules-load.d/br_netfilter.conf
     mode: "0644"
+
+- name: Set kernel parameters for k3s
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_set: true
+    reload: true
+  loop:
+    - {key: "net.bridge.bridge-nf-call-iptables", value: "1"}
+    - {key: "net.bridge.bridge-nf-call-ip6tables", value: "1"}
+    - {key: "net.ipv4.ip_forward", value: "1"}
 
 - name: Ensure /dev/kmsg exists (kubelet requirement)
   ansible.builtin.file:

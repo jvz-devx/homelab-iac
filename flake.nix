@@ -18,6 +18,8 @@
             fluxcd
             kubectl
             kubernetes-helm
+            opentofu
+            hcloud
             sops
             age
             cloudflared

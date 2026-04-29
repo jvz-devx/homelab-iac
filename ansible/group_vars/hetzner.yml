@@ -1,0 +1,26 @@
+---
+# Hetzner Cloud k3s cluster defaults.
+
+k3s_version: v1.31.4+k3s1
+k3s_node_ip: "{{ ansible_host }}"
+kubeconfig_output_path: "{{ playbook_dir }}/../kubeconfig-hetzner"
+
+k3s_install_flags: >-
+  --disable traefik
+  --disable servicelb
+  --disable-network-policy
+  --flannel-backend=none
+  --cluster-cidr=10.52.0.0/16
+  --service-cidr=10.53.0.0/16
+  --cluster-dns=10.53.0.10
+  --write-kubeconfig-mode 644
+  --tls-san {{ k3s_node_ip }}
+
+cilium_version: 1.16.6
+cilium_cluster_name: hetzner
+cilium_cluster_id: 2
+
+flux_github_owner: jvz-devx
+flux_github_repo: homelab-iac
+flux_github_branch: main
+flux_cluster_path: clusters/hetzner

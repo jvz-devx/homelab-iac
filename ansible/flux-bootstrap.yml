@@ -14,7 +14,7 @@
     cloudflare_api_token: "{{ sops_secrets.cloudflare_api_token }}"
     cloudflare_tunnel_token: "{{ sops_secrets.cloudflare_tunnel_token }}"
   environment:
-    KUBECONFIG: "{{ playbook_dir }}/../kubeconfig"
+    KUBECONFIG: "{{ kubeconfig_output_path | default(playbook_dir ~ '/../kubeconfig') }}"
     SOPS_AGE_KEY_FILE: "{{ lookup('env', 'HOME') }}/.config/sops/age/keys.txt"
   roles:
     - flux_bootstrap

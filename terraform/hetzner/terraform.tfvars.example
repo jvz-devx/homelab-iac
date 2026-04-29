@@ -1,0 +1,7 @@
+cluster_name = "hetzner-k3s"
+server_name  = "hetzner-k3s-1"
+server_type  = "cx33"
+location     = "fsn1"
+
+# Replace with your own admin IP ranges before exposing a long-lived cluster.
+admin_cidrs = ["0.0.0.0/0", "::/0"]

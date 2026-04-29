@@ -1,0 +1,12 @@
+# cloud-config
+package_update: true
+packages:
+  - curl
+  - python3
+  - sudo
+  - ca-certificates
+ssh_pwauth: false
+disable_root: false
+runcmd:
+  - sed -i 's/^#\\?PermitRootLogin .*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+  - systemctl reload ssh || systemctl reload sshd

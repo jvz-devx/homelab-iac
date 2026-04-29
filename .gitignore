@@ -7,9 +7,21 @@ keys.txt
 
 # Kubeconfig
 kubeconfig
+kubeconfig-*
+
+# Terraform/OpenTofu
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
 
 # direnv
 .direnv/
+
+# local agent/tooling state
+.codex
+.codex/
 
 # Ansible
 *.retry

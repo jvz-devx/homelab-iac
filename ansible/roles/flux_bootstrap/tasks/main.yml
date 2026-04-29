@@ -26,6 +26,8 @@
     --version {{ cilium_version }}
     --namespace kube-system
     --set operator.replicas=1
+    --set cluster.name={{ cilium_cluster_name | default('default') }}
+    --set cluster.id={{ cilium_cluster_id | default(0) }}
     --set ipam.mode=kubernetes
     --set kubeProxyReplacement=false
     --set cgroup.autoMount.enabled=false

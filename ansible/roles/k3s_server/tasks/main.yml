@@ -50,12 +50,12 @@
 - name: Fetch kubeconfig to local machine
   ansible.builtin.fetch:
     src: /etc/rancher/k3s/k3s.yaml
-    dest: "{{ playbook_dir }}/../kubeconfig"
+    dest: "{{ kubeconfig_output_path | default(playbook_dir ~ '/../kubeconfig') }}"
     flat: true
 
 - name: Fix kubeconfig server address
   ansible.builtin.replace:
-    path: "{{ playbook_dir }}/../kubeconfig"
+    path: "{{ kubeconfig_output_path | default(playbook_dir ~ '/../kubeconfig') }}"
     regexp: "https://127.0.0.1:6443"
     replace: "https://{{ k3s_node_ip }}:6443"
   delegate_to: localhost

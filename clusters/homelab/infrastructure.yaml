@@ -29,6 +29,10 @@ spec:
       kind: HelmRelease
       name: traefik
       namespace: traefik
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: tailscale-operator
+      namespace: tailscale
   timeout: 10m
   decryption:
     provider: sops

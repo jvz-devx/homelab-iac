@@ -53,9 +53,13 @@ variable "ssh_public_key_path" {
 }
 
 variable "admin_cidrs" {
-  description = "CIDRs allowed to reach SSH and the Kubernetes API. Tighten this after first bootstrap."
+  description = "CIDRs allowed to reach SSH and the Kubernetes API. Must be supplied explicitly so future plans fail closed."
   type        = list(string)
-  default     = ["0.0.0.0/0", "::/0"]
+
+  validation {
+    condition     = length(var.admin_cidrs) > 0
+    error_message = "Provide at least one admin CIDR, for example -var 'admin_cidrs=[\"203.0.113.10/32\"]'."
+  }
 }
 
 variable "ansible_inventory_path" {

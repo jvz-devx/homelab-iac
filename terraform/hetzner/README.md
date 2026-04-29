@@ -7,7 +7,8 @@ Ansible inventory for the second k3s cluster.
 nix develop
 source scripts/hetzner-env.sh
 tofu -chdir=terraform/hetzner init
-tofu -chdir=terraform/hetzner apply
+MY_IP=$(curl -fsS https://api.ipify.org)
+tofu -chdir=terraform/hetzner apply -var "admin_cidrs=[\"${MY_IP}/32\"]"
 cd ansible
 ansible-playbook -i inventory/hetzner.yml hetzner.yml
 ```

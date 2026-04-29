@@ -10,14 +10,15 @@ spec:
   url: oci://ghcr.io/danny-avila/librechat-chart
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
+kind: OCIRepository
 metadata:
-  name: bitnami
+  name: bitnami-postgresql
   namespace: librechat
 spec:
   interval: 24h
-  type: oci
-  url: oci://registry-1.docker.io/bitnamicharts
+  ref:
+    tag: 18.6.2
+  url: oci://registry-1.docker.io/bitnamicharts/postgresql
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -26,14 +27,10 @@ metadata:
   namespace: librechat
 spec:
   interval: 30m
-  chart:
-    spec:
-      chart: postgresql
-      version: "18.6.x"
-      sourceRef:
-        kind: HelmRepository
-        name: bitnami
-        namespace: librechat
+  chartRef:
+    kind: OCIRepository
+    name: bitnami-postgresql
+    namespace: librechat
   install:
     remediation:
       retries: 3

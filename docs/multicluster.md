@@ -24,8 +24,7 @@ Do not reuse LAN-specific manifests directly on Hetzner. Current homelab
 manifests include assumptions such as MetalLB LAN ranges, Cloudflare tunnel
 routing, NAS mounts, and single-node resource limits.
 
-For real cross-cluster service traffic, add an explicit private network layer
-between `192.168.1.100` and the Hetzner node later (WireGuard or Tailscale),
-then enable a higher-level discovery/routing layer such as Cilium Cluster Mesh
-or a service mesh. The CIDRs above are already prepared for that; do not rely on
+Cross-cluster routing uses host-level Tailscale subnet routers on both k3s
+nodes. See `docs/tailscale-routing.md` for the route advertisements, Tailscale
+policy requirements, rollout steps, and verification commands. Do not rely on
 Kubernetes node joining across the public internet.

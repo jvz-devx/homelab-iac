@@ -5,6 +5,7 @@
 # For individual stages, use tags:
 #   ansible-playbook site.yml --tags proxmox    # LXC only
 #   ansible-playbook site.yml --tags k3s        # k3s only
+#   ansible-playbook site.yml --tags tailscale  # Tailscale subnet router only
 #   ansible-playbook site.yml --tags flux       # Flux only
 
 - name: "Stage 1: Create LXC container on Proxmox"
@@ -28,7 +29,19 @@
   roles:
     - k3s_server
 
-- name: "Stage 4: Bootstrap Cilium CNI + FluxCD"
+- name: "Stage 4: Configure Tailscale subnet router"
+  hosts: k3s_cluster
+  become: true
+  tags: [tailscale]
+  vars_files:
+    - group_vars/all.yml
+  vars:
+    sops_secrets: "{{ lookup('community.sops.sops', 'group_vars/all.sops.yml') | from_yaml }}"
+    tailscale_auth_key: "{{ sops_secrets.tailscale_auth_key }}"
+  roles:
+    - tailscale
+
+- name: "Stage 5: Bootstrap Cilium CNI + FluxCD"
   hosts: localhost
   connection: local
   gather_facts: false

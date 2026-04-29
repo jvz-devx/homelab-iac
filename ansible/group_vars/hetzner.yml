@@ -20,6 +20,13 @@ cilium_version: 1.16.6
 cilium_cluster_name: hetzner
 cilium_cluster_id: 2
 
+tailscale_hostname: hetzner-k3s
+tailscale_accept_routes: true
+tailscale_advertise_routes:
+  - 10.52.0.0/16
+  - 10.53.0.0/16
+tailscale_advertise_exit_node: true
+
 flux_github_owner: jvz-devx
 flux_github_repo: homelab-iac
 flux_github_branch: main

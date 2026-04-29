@@ -31,6 +31,13 @@ resource "hcloud_firewall" "k3s" {
 
   rule {
     direction  = "in"
+    protocol   = "udp"
+    port       = "41641"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+
+  rule {
+    direction  = "in"
     protocol   = "tcp"
     port       = "80"
     source_ips = ["0.0.0.0/0", "::/0"]

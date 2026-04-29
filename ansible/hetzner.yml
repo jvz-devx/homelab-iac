@@ -20,7 +20,19 @@
   roles:
     - k3s_server
 
-- name: "Hetzner Stage 3: Bootstrap Cilium CNI + FluxCD"
+- name: "Hetzner Stage 3: Configure Tailscale subnet router"
+  hosts: hetzner_k3s_cluster
+  become: true
+  tags: [tailscale]
+  vars_files:
+    - group_vars/hetzner.yml
+  vars:
+    sops_secrets: "{{ lookup('community.sops.sops', 'group_vars/all.sops.yml') | from_yaml }}"
+    tailscale_auth_key: "{{ sops_secrets.tailscale_auth_key }}"
+  roles:
+    - tailscale
+
+- name: "Hetzner Stage 4: Bootstrap Cilium CNI + FluxCD"
   hosts: localhost
   connection: local
   gather_facts: false

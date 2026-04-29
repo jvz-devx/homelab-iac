@@ -8,3 +8,5 @@ resources:
   - clusterissuer.yaml
   # GHCR authentication for Flux image scanning
   - ghcr-auth-secret.yaml
+  # Explicit remote-service stubs reached over Tailscale
+  - remote-hetzner-stubs.yaml

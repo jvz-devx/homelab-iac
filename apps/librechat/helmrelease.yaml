@@ -59,7 +59,7 @@ spec:
         size: 8Gi
       resources:
         requests:
-          cpu: 20m
+          cpu: 1m
           memory: 256Mi
         limits:
           cpu: 1
@@ -107,6 +107,8 @@ spec:
                 path: /data/JWT_REFRESH_SECRET
   values:
     global:
+      security:
+        allowInsecureImages: true
       librechat:
         existingSecretName: librechat-credentials-env
         existingSecretApiKey: RAG_OPENAI_API_KEY
@@ -171,7 +173,7 @@ spec:
         periodSeconds: 10
       resources:
         requests:
-          cpu: 20m
+          cpu: 1m
           memory: 256Mi
         limits:
           cpu: 1
@@ -187,6 +189,8 @@ spec:
 
     mongodb:
       enabled: true
+      image:
+        repository: bitnamilegacy/mongodb
       auth:
         enabled: false
       databases:
@@ -195,7 +199,7 @@ spec:
         size: 8Gi
       resources:
         requests:
-          cpu: 50m
+          cpu: 1m
           memory: 256Mi
         limits:
           cpu: 750m
@@ -211,7 +215,7 @@ spec:
         existingMasterKeySecret: librechat-credentials-env
       resources:
         requests:
-          cpu: 20m
+          cpu: 1m
           memory: 256Mi
         limits:
           cpu: 1
@@ -228,7 +232,7 @@ spec:
           size: 8Gi
         resources:
           requests:
-            cpu: 10m
+            cpu: 1m
             memory: 128Mi
           limits:
             cpu: 250m
@@ -259,7 +263,7 @@ spec:
 
     resources:
       requests:
-        cpu: 50m
+        cpu: 1m
         memory: 512Mi
       limits:
         cpu: 2

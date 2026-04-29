@@ -85,41 +85,58 @@
   changed_when: false
   no_log: true
 
-- name: Install explicit cross-cluster route helper
+- name: Install Tailscale route table override helper
   ansible.builtin.copy:
-    dest: /usr/local/sbin/tailscale-cross-cluster-routes
+    dest: /usr/local/sbin/tailscale-route-table-overrides
     mode: "0755"
     content: |
       #!/usr/bin/env bash
       set -euo pipefail
-      {% for route in tailscale_static_routes | default([]) %}
-      ip route replace {{ route }} dev tailscale0
+      {% for route in tailscale_route_table_overrides | default([]) %}
+      ip route replace {{ route.cidr }} dev {{ route.dev }}{% if route.src is defined %} src {{ route.src }}{% endif %} table {{ route.table | default(52) }}
       {% endfor %}
-  when: tailscale_static_routes | default([]) | length > 0
+  when: tailscale_route_table_overrides | default([]) | length > 0
 
-- name: Install explicit cross-cluster route service
+- name: Install Tailscale route table override service
   ansible.builtin.copy:
-    dest: /etc/systemd/system/tailscale-cross-cluster-routes.service
+    dest: /etc/systemd/system/tailscale-route-table-overrides.service
     mode: "0644"
     content: |
       [Unit]
-      Description=Install explicit Tailscale cross-cluster routes
+      Description=Install local route overrides after Tailscale routes
       Wants=tailscaled.service
       After=tailscaled.service network-online.target
 
       [Service]
       Type=oneshot
-      ExecStart=/usr/local/sbin/tailscale-cross-cluster-routes
+      ExecStart=/usr/local/sbin/tailscale-route-table-overrides
       RemainAfterExit=yes
 
       [Install]
       WantedBy=multi-user.target
-  when: tailscale_static_routes | default([]) | length > 0
+  when: tailscale_route_table_overrides | default([]) | length > 0
 
-- name: Enable explicit cross-cluster route service
+- name: Enable Tailscale route table override service
   ansible.builtin.systemd:
-    name: tailscale-cross-cluster-routes
+    name: tailscale-route-table-overrides
     enabled: true
     daemon_reload: true
     state: started
-  when: tailscale_static_routes | default([]) | length > 0
+  when: tailscale_route_table_overrides | default([]) | length > 0
+
+- name: Remove stale Tailscale route table override service
+  ansible.builtin.systemd:
+    name: tailscale-route-table-overrides
+    enabled: false
+    state: stopped
+  failed_when: false
+  when: tailscale_route_table_overrides | default([]) | length == 0
+
+- name: Remove stale Tailscale route table override files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/systemd/system/tailscale-route-table-overrides.service
+    - /usr/local/sbin/tailscale-route-table-overrides
+  when: tailscale_route_table_overrides | default([]) | length == 0

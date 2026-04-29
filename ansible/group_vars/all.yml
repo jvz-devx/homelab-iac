@@ -45,13 +45,15 @@ cilium_version: 1.16.6
 
 # ── Tailscale cross-cluster routing ───────────────────────────
 tailscale_hostname: homelab-k3s
-tailscale_accept_routes: false
+tailscale_accept_routes: true
 tailscale_advertise_routes:
   - 10.42.0.0/16
   - 10.43.0.0/16
-tailscale_static_routes:
-  - 10.52.0.0/16
-  - 10.53.0.0/16
+tailscale_route_table_overrides:
+  - cidr: 192.168.1.0/24
+    dev: eth0
+    src: 192.168.1.100
+    table: 52
 tailscale_advertise_exit_node: false
 
 # ── MetalLB ──────────────────────────────────────────────────

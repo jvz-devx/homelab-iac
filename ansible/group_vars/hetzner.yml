@@ -21,13 +21,11 @@ cilium_cluster_name: hetzner
 cilium_cluster_id: 2
 
 tailscale_hostname: hetzner-k3s
-tailscale_accept_routes: false
+tailscale_accept_routes: true
 tailscale_advertise_routes:
   - 10.52.0.0/16
   - 10.53.0.0/16
-tailscale_static_routes:
-  - 10.42.0.0/16
-  - 10.43.0.0/16
+tailscale_route_table_overrides: []
 tailscale_advertise_exit_node: true
 
 flux_github_owner: jvz-devx

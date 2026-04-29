@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - copyparty
   - cliproxyapi
-  - librechat
+  # - librechat
   - openwebui
   - resonance
   - rustdesk-server

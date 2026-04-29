@@ -4,6 +4,9 @@ kind: Service
 metadata:
   name: cliproxyapi
   namespace: cliproxyapi
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: cliproxyapi-homelab
 spec:
   type: ClusterIP
   selector:

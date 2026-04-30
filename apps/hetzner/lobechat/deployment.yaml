@@ -49,7 +49,7 @@ spec:
             - name: OPENAI_PROXY_URL
               value: http://cliproxyapi.remote-homelab.svc.cluster.local:8317/v1
             - name: OPENAI_MODEL_LIST
-              value: -all,+gpt-5-codex
+              value: -all,+gpt-5.5
             - name: APP_URL
               value: https://lobechat.jensvanzutphen.com
             - name: INTERNAL_APP_URL

@@ -36,21 +36,6 @@ endpoints:
 apiVersion: v1
 kind: Service
 metadata:
-  name: librechat
-  namespace: remote-hetzner
-  annotations:
-    tailscale.com/tailnet-fqdn: librechat-hetzner.zebu-dorian.ts.net
-spec:
-  type: ExternalName
-  externalName: placeholder
-  ports:
-    - name: http
-      port: 3080
-      protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
   name: cv-web
   namespace: remote-hetzner
   annotations:
@@ -107,33 +92,6 @@ spec:
     - name: http
       port: 3001
       protocol: TCP
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: librechat
-  namespace: remote-hetzner
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-dns01
-    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
-    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-spec:
-  ingressClassName: traefik
-  rules:
-    - host: chat-test.jensvanzutphen.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: librechat
-                port:
-                  number: 3080
-  tls:
-    - hosts:
-        - chat-test.jensvanzutphen.com
-      secretName: librechat-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

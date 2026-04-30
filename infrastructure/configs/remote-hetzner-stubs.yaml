@@ -48,6 +48,66 @@ spec:
       port: 3080
       protocol: TCP
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cv-web
+  namespace: remote-hetzner
+  annotations:
+    tailscale.com/tailnet-fqdn: cv-web-hetzner.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dartbingo
+  namespace: remote-hetzner
+  annotations:
+    tailscale.com/tailnet-fqdn: dartbingo-hetzner.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: klavier-dev
+  namespace: remote-hetzner
+  annotations:
+    tailscale.com/tailnet-fqdn: klavier-dev-hetzner.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: klavier-ws
+  namespace: remote-hetzner
+  annotations:
+    tailscale.com/tailnet-fqdn: klavier-ws-hetzner.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 3001
+      protocol: TCP
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -74,3 +134,106 @@ spec:
     - hosts:
         - chat-test.jensvanzutphen.com
       secretName: librechat-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cv-web
+  namespace: remote-hetzner
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: cv.tunetap.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cv-web
+                port:
+                  number: 3000
+    - host: cv.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cv-web
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - cv.tunetap.xyz
+        - cv.jensvanzutphen.com
+      secretName: cv-web-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dartbingo
+  namespace: remote-hetzner
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: dart.tunetap.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dartbingo
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - dart.tunetap.xyz
+      secretName: dartbingo-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: klavier-dev
+  namespace: remote-hetzner
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: klavier-dev.tunetap.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: klavier-dev
+                port:
+                  number: 3000
+    - host: po4k048owkwcgwoso0owc8cg.tunetap.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: klavier-ws
+                port:
+                  number: 3001
+  tls:
+    - hosts:
+        - klavier-dev.tunetap.xyz
+        - po4k048owkwcgwoso0owc8cg.tunetap.xyz
+      secretName: klavier-dev-tls

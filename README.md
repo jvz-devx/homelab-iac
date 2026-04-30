@@ -14,12 +14,18 @@ Proxmox (192.168.1.202)
         ├── cert-manager (TLS)
         ├── FluxCD       (GitOps)
         ├── cloudflared  (Tunnel → jensvanzutphen.com)
+        ├── Tailscale    (cross-cluster service access)
         └── NAS storage  (rclone FTP → 192.168.1.1)
 ```
 
 All k3s built-ins (traefik, servicelb, flannel) are disabled and replaced with declarative Flux-managed HelmReleases.
 
-Current user apps intended on the cluster: copyparty and experimental termix only.
+The repo also contains a second independent k3s cluster on Hetzner. The clusters
+share GitOps and SOPS trust, but they are separate Kubernetes control planes.
+Cross-cluster traffic uses host-level Tailscale subnet routers plus the
+Tailscale Kubernetes Operator for selected stable Services. See
+[`docs/multicluster.md`](docs/multicluster.md) and
+[`docs/tailscale-routing.md`](docs/tailscale-routing.md).
 
 ## Prerequisites
 
@@ -39,10 +45,13 @@ ansible/                  # Provisioning playbooks and roles
 │   ├── k3s_install/      # k3s installation and config
 │   └── flux_bootstrap/   # Cilium CNI + FluxCD bootstrap
 infrastructure/
-├── controllers/          # HelmReleases (cilium, metallb, traefik, cert-manager, cloudflared, nas)
-└── configs/              # Post-CRD resources (MetalLB pools, ClusterIssuers)
+├── controllers/          # Homelab HelmReleases/controllers
+├── hetzner/              # Hetzner-specific controllers and configs
+└── configs/              # Homelab post-CRD resources (MetalLB pools, ClusterIssuers)
 apps/                     # Application workloads (deployed by Flux)
-clusters/homelab/         # Flux Kustomizations (dependency chain entry point)
+clusters/
+├── homelab/              # Homelab Flux Kustomizations
+└── hetzner/              # Hetzner Flux Kustomizations
 ```
 
 ## Quick Start
@@ -73,7 +82,13 @@ ansible-playbook site.yml   # Rebuilds everything; Flux reconciles workloads fro
 sops ansible/group_vars/all.sops.yml        # GitHub PAT, Cloudflare tokens
 sops infrastructure/controllers/cloudflared/secret.yaml  # Tunnel token
 sops infrastructure/controllers/nas/secret.yaml          # NAS credentials
+sops infrastructure/controllers/tailscale-operator/secret.yaml          # Homelab Tailscale operator OAuth
+sops infrastructure/hetzner/controllers/tailscale-operator/secret.yaml  # Hetzner Tailscale operator OAuth
 ```
+
+Tailscale node auth keys and operator OAuth credentials have appeared in chat
+history during setup. Rotate them when convenient and update only the SOPS
+encrypted values.
 
 ## Termix
 

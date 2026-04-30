@@ -24,7 +24,15 @@ Do not reuse LAN-specific manifests directly on Hetzner. Current homelab
 manifests include assumptions such as MetalLB LAN ranges, Cloudflare tunnel
 routing, NAS mounts, and single-node resource limits.
 
-Cross-cluster routing uses host-level Tailscale subnet routers on both k3s
-nodes. See `docs/tailscale-routing.md` for the route advertisements, Tailscale
-policy requirements, rollout steps, and verification commands. Do not rely on
-Kubernetes node joining across the public internet.
+Cross-cluster routing uses two Tailscale layers:
+
+- host-level subnet routers on both k3s nodes for base pod/service CIDR reachability
+- the Tailscale Kubernetes Operator in both clusters for stable service-level
+  access where pod IPs or ClusterIPs would be brittle
+
+CLIProxyAPI is the first operator-managed shared service. Homelab exposes it as
+`cliproxyapi-homelab.zebu-dorian.ts.net`; Hetzner consumes it at
+`cliproxyapi.remote-homelab.svc.cluster.local`. See
+`docs/tailscale-routing.md` for policy requirements, rollout steps, and
+verification commands. Do not rely on Kubernetes node joining across the public
+internet.

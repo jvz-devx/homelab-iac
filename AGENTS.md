@@ -18,8 +18,13 @@ Proxmox (192.168.1.202)
         ├── cert-manager   (TLS certificates)
         ├── FluxCD         (GitOps reconciliation)
         ├── cloudflared    (Cloudflare Tunnel → jensvanzutphen.com)
+        ├── Tailscale      (subnet router + Kubernetes Operator)
         └── NAS storage    (rclone FTP mount → 192.168.1.1)
 ```
+
+There is also a second independent k3s cluster on Hetzner. It is not a node in
+the homelab cluster. The two clusters share this GitOps repo, SOPS age trust,
+and selected cross-cluster services over Tailscale.
 
 ## Commands
 
@@ -97,6 +102,45 @@ The ordering in `clusters/homelab/` matters:
 3. **`apps`** Kustomization (dependsOn: infrastructure-controllers) → `./apps/kustomization.yaml` — all user applications.
 
 All Kustomizations reference `GitRepository flux-system` (created by FluxCD bootstrap). You never need to create additional GitRepositories.
+
+Hetzner has its own Flux chain in `clusters/hetzner/`:
+
+1. **`infrastructure-controllers`** → `./infrastructure/hetzner/controllers`
+2. **`infrastructure-configs`** → `./infrastructure/hetzner/configs`
+
+Do not point Hetzner at homelab-only `apps/` or controller trees unless the
+manifests have been split into portable bases and cluster overlays.
+
+## Cross-Cluster Tailscale
+
+Two Tailscale layers are intentionally used:
+
+- Host-level subnet routers on the k3s nodes advertise pod and service CIDRs.
+  Homelab advertises `10.42.0.0/16` and `10.43.0.0/16`; Hetzner advertises
+  `10.52.0.0/16` and `10.53.0.0/16`. Hetzner is also an exit node.
+- The Tailscale Kubernetes Operator runs in both clusters for stable
+  cross-cluster Services. CLIProxyAPI is exposed from homelab as
+  `cliproxyapi-homelab.zebu-dorian.ts.net` and consumed in Hetzner as
+  `cliproxyapi.remote-homelab.svc.cluster.local`.
+
+Do not reintroduce pod-IP EndpointSlices for CLIProxyAPI. The previous
+`10.42.0.31` target was deliberately replaced because it broke on pod restart.
+Use operator-managed egress Services for new stable cross-cluster app traffic.
+Keep raw selectorless EndpointSlices only for explicit low-level stubs such as
+Kubernetes API tests.
+
+The tailnet policy must allow the operator to create proxy devices:
+
+```json
+"tagOwners": {
+  "tag:k8s-operator": ["autogroup:admin", "jvz-devx@github"],
+  "tag:k8s": ["tag:k8s-operator"]
+}
+```
+
+If Tailscale operator OAuth credentials or node auth keys are rotated, update
+only the SOPS-encrypted Secrets/Ansible secret values. These secrets have
+appeared in chat history, so rotation is recommended.
 
 ## How to Add a New App
 
@@ -291,6 +335,7 @@ If you're not sure whether two changes belong in the same commit: they don't. Sp
 |---|---|---|
 | Proxmox | 192.168.1.202 | Hypervisor |
 | k3s-node (LXC 101) | 192.168.1.100 | k3s server |
+| Hetzner k3s | 10.80.0.2 / public Hetzner IP | second k3s server |
 | NAS | 192.168.1.1 | FTP file storage |
 | MetalLB pool | 192.168.1.110–120 | LoadBalancer VIPs |
 | Domain | jensvanzutphen.com | Cloudflare Tunnel |

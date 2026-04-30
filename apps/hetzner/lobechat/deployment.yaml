@@ -35,7 +35,13 @@ spec:
             - name: REDIS_URL
               value: redis://redis:6379
             - name: S3_ENDPOINT
-              value: https://s3.amazonaws.com
+              value: http://minio:9000
+            - name: S3_BUCKET
+              value: lobechat
+            - name: S3_ENABLE_PATH_STYLE
+              value: "1"
+            - name: S3_SET_ACL
+              value: "0"
             - name: ENABLED_OPENAI
               value: "1"
             - name: ENABLED_OLLAMA

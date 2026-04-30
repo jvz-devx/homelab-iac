@@ -6,5 +6,6 @@ resources:
   - secret.yaml
   - postgres.yaml
   - redis.yaml
+  - minio.yaml
   - deployment.yaml
   - service.yaml

@@ -4,11 +4,13 @@ kind: Service
 metadata:
   name: openwebui
   namespace: openwebui
+  annotations:
+    tailscale.com/tailnet-fqdn: openwebui-hetzner.zebu-dorian.ts.net
 spec:
-  type: ClusterIP
-  selector:
-    app: openwebui
+  type: ExternalName
+  externalName: placeholder
   ports:
     - name: http
       port: 80
-      targetPort: http
+      targetPort: 80
+      protocol: TCP

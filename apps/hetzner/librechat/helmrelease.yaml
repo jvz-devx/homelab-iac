@@ -161,13 +161,13 @@ spec:
           EMBEDDINGS_MODEL: google/gemini-embedding-2-preview
       livenessProbe:
         httpGet:
-          path: /
+          path: /health
           port: http
         initialDelaySeconds: 30
         periodSeconds: 30
       readinessProbe:
         httpGet:
-          path: /
+          path: /health
           port: http
         initialDelaySeconds: 10
         periodSeconds: 10

@@ -1,0 +1,157 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openwebui
+  namespace: openwebui
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: openwebui
+  template:
+    metadata:
+      labels:
+        app: openwebui
+    spec:
+      initContainers:
+        - name: restore-gate
+          image: busybox:1.37
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -lc
+            - |
+              set -e
+              while [ ! -f /data/webui.db ]; do
+                if [ -f /data/openwebui-data-homelab.tgz ]; then
+                  tar -xzf /data/openwebui-data-homelab.tgz -C /data
+                  rm -f /data/openwebui-data-homelab.tgz
+                else
+                  echo "Waiting for Open WebUI data restore at /data/openwebui-data-homelab.tgz"
+                  sleep 5
+                fi
+              done
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: openwebui
+          image: ghcr.io/open-webui/open-webui:v0.9.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: WEBUI_URL
+              value: https://chat.jensvanzutphen.com
+            - name: WEBUI_AUTH_COOKIE_SECURE
+              value: "true"
+            - name: ENABLE_OPENAI_API
+              value: "true"
+            - name: OPENAI_API_BASE_URL
+              value: http://cliproxyapi.remote-homelab.svc.cluster.local:8317/v1
+            - name: DEFAULT_MODELS
+              value: gpt-5-codex
+            - name: TASK_MODEL_EXTERNAL
+              value: gpt-5-codex
+            - name: ENABLE_OLLAMA_API
+              value: "false"
+            - name: ENABLE_SIGNUP
+              value: "false"
+            - name: ENABLE_OAUTH_SIGNUP
+              value: "true"
+            - name: ENABLE_OAUTH_PERSISTENT_CONFIG
+              value: "false"
+            - name: ENABLE_LOGIN_FORM
+              value: "false"
+            - name: ENABLE_PASSWORD_AUTH
+              value: "false"
+            - name: DEFAULT_USER_ROLE
+              value: pending
+            - name: OAUTH_PROVIDER_NAME
+              value: Google
+            - name: OPENID_PROVIDER_URL
+              value: https://accounts.google.com/.well-known/openid-configuration
+            - name: OPENID_REDIRECT_URI
+              value: https://chat.jensvanzutphen.com/oauth/oidc/callback
+            - name: OAUTH_SCOPES
+              value: openid email profile
+            - name: ENABLE_IMAGE_GENERATION
+              value: "true"
+            - name: ENABLE_IMAGE_PROMPT_GENERATION
+              value: "true"
+            - name: IMAGE_GENERATION_ENGINE
+              value: openai
+            - name: IMAGE_GENERATION_MODEL
+              value: gpt-image-2
+            - name: IMAGE_EDIT_ENGINE
+              value: openai
+            - name: IMAGE_EDIT_MODEL
+              value: gpt-image-2
+            - name: IMAGE_SIZE
+              value: 1024x1024
+            - name: IMAGES_OPENAI_API_BASE_URL
+              value: http://cliproxyapi.remote-homelab.svc.cluster.local:8317/v1
+            - name: IMAGES_EDIT_OPENAI_API_BASE_URL
+              value: http://cliproxyapi.remote-homelab.svc.cluster.local:8317/v1
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openwebui-secrets
+                  key: OPENAI_API_KEY
+            - name: IMAGES_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openwebui-secrets
+                  key: OPENAI_API_KEY
+            - name: IMAGES_EDIT_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openwebui-secrets
+                  key: OPENAI_API_KEY
+            - name: WEBUI_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openwebui-secrets
+                  key: WEBUI_SECRET_KEY
+            - name: OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: openwebui-secrets
+                  key: OAUTH_CLIENT_ID
+            - name: OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: openwebui-secrets
+                  key: OAUTH_CLIENT_SECRET
+          volumeMounts:
+            - name: data
+              mountPath: /app/backend/data
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: openwebui-data

@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openwebui
+  namespace: openwebui
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: openwebui-hetzner
+spec:
+  type: ClusterIP
+  selector:
+    app: openwebui
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

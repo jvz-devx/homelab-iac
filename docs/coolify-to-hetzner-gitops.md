@@ -48,7 +48,7 @@ For GitOps, reproduce the app topology, not the Coolify control plane. The Cooli
 | App | Coolify project | Container | Image | Status | Public domain(s) | App port | Storage | Dependencies | GitOps target |
 |---|---|---|---|---|---|---:|---|---|---|
 | Open WebUI | `my-first-project` | `wwkgscg0cg80skks8gk44cws-193442560243` | `ghcr.io/open-webui/open-webui:main` | healthy | `chat.tunetap.xyz` | 1234 | `/data/coolify/applications/wwkgscg0cg80skks8gk44cws -> /app/backend/data` | OpenAI-compatible API via env | Already exists in homelab; optional Hetzner port as `apps/hetzner/openwebui` |
-| Prowlarr | `prowlarr` | `c4c4oowosg04okgkgkgk4c88-092609951372` | `lscr.io/linuxserver/prowlarr:latest` | running | `prowlarr.tunetap.xyz` | 9696 | `/data/coolify/applications/c4c4oowosg04okgkgkgk4c88 -> /config` | none seen in Docker wiring | `apps/hetzner/prowlarr` |
+| Prowlarr | `prowlarr` | `c4c4oowosg04okgkgkgk4c88-092609951372` | `lscr.io/linuxserver/prowlarr:latest` | migrated; Coolify container removed | `prowlarr.tunetap.xyz` | 9696 | Hetzner PVC `prowlarr-config -> /config`; old Coolify bind dir left as recovery trail | restored `/config` including `prowlarr.db` | `apps/hetzner/prowlarr` |
 | Tunetap app | `tunetap` | `mwkcggs4c4wsgcwoggogwkk4-145216530096` | `ghcr.io/jvz-devx/coolify-tunetap-app@sha256:74eff492e808ddd6e26ee83723c93ce686f992a7b74ef21d9ec2c5d8568fae12` | migrated; Coolify container removed | `app.tunetap.xyz` | 3000 | Hetzner PVC `tunetap-data -> /app/data` | SQLite `DATABASE_URL=file:/app/data/database.db`; Puppeteer env retained | `apps/hetzner/tunetap-app` |
 | CV web | `tunetap` | `sw88os0occgccw0g88sgk4sk-111703755342` | `ghcr.io/jvz-devx/coolify-cv-web@sha256:62d9688c2b471b931770e0f8ab6d7f8058e1589e6beace9405a3a6bda76310bb` | migrated; Coolify container removed | `cv.tunetap.xyz`, `cv.jensvanzutphen.com` | 3000 | none | none seen | `apps/hetzner/cv-web` |
 | Dart Bingo | `dartbingo` | `nc044040wwks0gkg8ogwwc0c-154334423467` | `ghcr.io/jvz-devx/coolify-dartbingo@sha256:782a9e2582d3197b337393ab20e2508c38d00c4dd18391152e86a91b8f54903b` | migrated; Coolify container removed | `dart.tunetap.xyz` | 3000 | none | none seen | `apps/hetzner/dartbingo` |
@@ -232,24 +232,24 @@ One namespace containing:
 
 Important: the WebSocket container is currently restart-looping with exit code 101. Fix or intentionally preserve the current image only after checking logs.
 
-### `apps/hetzner/openwebui-coolify`
+### `apps/hetzner/openwebui`
 
-Only needed if we want to migrate this old Coolify Open WebUI separately from the current homelab Open WebUI.
+This is the active backend for `chat.jensvanzutphen.com`.
 
-- Deployment using `ghcr.io/open-webui/open-webui:main`.
-- PVC mounted at `/app/backend/data`.
-- Service port 1234 targeting the app.
-- Ingress for `chat.tunetap.xyz`.
-- SOPS Secret for OpenAI-compatible API settings and `WEBUI_SECRET_KEY`.
-
-Given the current repo already runs Open WebUI against CLIProxyAPI, this may be better treated as a data migration into the existing Open WebUI rather than a new app.
+- Deployment using `ghcr.io/open-webui/open-webui:v0.9.2`.
+- PVC `openwebui-data` mounted at `/app/backend/data`.
+- Data was migrated from homelab Open WebUI as a full tar archive of `/app/backend/data`, including `webui.db`, WAL files, uploads, vector DB, and model cache.
+- Homelab keeps its old `openwebui-data` PVC as a fallback copy, but its Open WebUI Deployment is scaled to `0`.
+- Homelab `openwebui` Service is now a Tailscale ExternalName to `openwebui-hetzner.zebu-dorian.ts.net`, so the existing `chat.jensvanzutphen.com` Ingress, TLS secret, DNS, and OAuth redirect URI are unchanged.
+- Chat and image generation still use CLIProxyAPI through `cliproxyapi.remote-homelab.svc.cluster.local:8317`.
 
 ### `apps/hetzner/prowlarr`
 
 - Deployment using `lscr.io/linuxserver/prowlarr:latest`.
-- PVC mounted at `/config`.
+- PVC `prowlarr-config` mounted at `/config`.
+- Data was migrated from Coolify bind mount `/data/coolify/applications/c4c4oowosg04okgkgkgk4c88`, including `prowlarr.db`, `logs.db`, `config.xml`, backups, and definitions.
 - Service port 9696.
-- Ingress for `prowlarr.tunetap.xyz`.
+- Homelab ingress route for `prowlarr.tunetap.xyz` uses the Tailscale proxy `prowlarr-hetzner.zebu-dorian.ts.net`.
 - Treat `/config` as sensitive because it may include API keys and indexer credentials.
 
 ### `apps/hetzner/tunetap-app`

@@ -34,8 +34,6 @@ spec:
               value: node
             - name: REDIS_URL
               value: redis://redis:6379
-            - name: NEXT_PUBLIC_AUTH_URL
-              value: http://lobechat-hetzner
             - name: ENABLED_OPENAI
               value: "1"
             - name: ENABLED_OLLAMA

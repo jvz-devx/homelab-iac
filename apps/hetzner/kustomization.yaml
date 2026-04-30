@@ -2,4 +2,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - librechat
+  - namespace.yaml
+  # LibreChat is temporarily disabled to reset a failed first Helm install.
+  # Re-enable after Flux prunes the failed release state.
+  # - librechat

@@ -49,19 +49,19 @@ For GitOps, reproduce the app topology, not the Coolify control plane. The Cooli
 |---|---|---|---|---|---|---:|---|---|---|
 | Open WebUI | `my-first-project` | `wwkgscg0cg80skks8gk44cws-193442560243` | `ghcr.io/open-webui/open-webui:main` | healthy | `chat.tunetap.xyz` | 1234 | `/data/coolify/applications/wwkgscg0cg80skks8gk44cws -> /app/backend/data` | OpenAI-compatible API via env | Already exists in homelab; optional Hetzner port as `apps/hetzner/openwebui` |
 | Prowlarr | `prowlarr` | `c4c4oowosg04okgkgkgk4c88-092609951372` | `lscr.io/linuxserver/prowlarr:latest` | running | `prowlarr.tunetap.xyz` | 9696 | `/data/coolify/applications/c4c4oowosg04okgkgkgk4c88 -> /config` | none seen in Docker wiring | `apps/hetzner/prowlarr` |
-| Tunetap app | `tunetap` | `mwkcggs4c4wsgcwoggogwkk4-145216530096` | `mwkcggs4c4wsgcwoggogwkk4:5b64093f52bad6017b90a8d7d1958b84c9bfcfba` | running | `app.tunetap.xyz` | 3000 | none | `DATABASE_URL`; likely external or embedded connection string | `apps/hetzner/tunetap-app` |
-| CV web | `tunetap` | `sw88os0occgccw0g88sgk4sk-111703755342` | `sw88os0occgccw0g88sgk4sk:ff6a56c86282df839d83a083b9de9c3afceafc83` | running | `cv.tunetap.xyz`, `cv.jensvanzutphen.com` | 3000 | none | none seen | `apps/hetzner/cv-web` |
-| Dart Bingo | `dartbingo` | `nc044040wwks0gkg8ogwwc0c-154334423467` | `nc044040wwks0gkg8ogwwc0c:e0a84cc2b43baea7a958279c2bea2582d1bc4df3` | running | `dart.tunetap.xyz` | 3000 | none | none seen | `apps/hetzner/dartbingo` |
+| Tunetap app | `tunetap` | `mwkcggs4c4wsgcwoggogwkk4-145216530096` | `ghcr.io/jvz-devx/coolify-tunetap-app@sha256:74eff492e808ddd6e26ee83723c93ce686f992a7b74ef21d9ec2c5d8568fae12` | migrated; Coolify container removed | `app.tunetap.xyz` | 3000 | Hetzner PVC `tunetap-data -> /app/data` | SQLite `DATABASE_URL=file:/app/data/database.db`; Puppeteer env retained | `apps/hetzner/tunetap-app` |
+| CV web | `tunetap` | `sw88os0occgccw0g88sgk4sk-111703755342` | `ghcr.io/jvz-devx/coolify-cv-web@sha256:62d9688c2b471b931770e0f8ab6d7f8058e1589e6beace9405a3a6bda76310bb` | migrated; Coolify container removed | `cv.tunetap.xyz`, `cv.jensvanzutphen.com` | 3000 | none | none seen | `apps/hetzner/cv-web` |
+| Dart Bingo | `dartbingo` | `nc044040wwks0gkg8ogwwc0c-154334423467` | `ghcr.io/jvz-devx/coolify-dartbingo@sha256:782a9e2582d3197b337393ab20e2508c38d00c4dd18391152e86a91b8f54903b` | migrated; Coolify container removed | `dart.tunetap.xyz` | 3000 | none | none seen | `apps/hetzner/dartbingo` |
 | Sweet Heist | `sweet-heist` | `a0kkgsok4go8g0c4g8gsck0k-203517326375` | `a0kkgsok4go8g0c4g8gsck0k:cf7399ac0549150c3a9c6523a015366509cdcbf1` | healthy | `a0kkgsok4go8g0c4g8gsck0k.tunetap.xyz` | 3000 | none | none seen | `apps/hetzner/sweet-heist` |
-| Klavier SvelteKit | `klavier-dev` | `xkcskk4ok44s40g8wc0800go-153431237329` | `xkcskk4ok44s40g8wc0800go:1d928188d47e6d24ff08c4231baa2dccd85ce5d6` | running | `klavier-dev.tunetap.xyz` | 3000 | none | PostgreSQL, Redis, Cloudflare R2, GitHub OAuth, Better Auth | `apps/hetzner/klavier-dev` |
-| Klavier WebSocket server | `klavier-dev` | `po4k048owkwcgwoso0owc8cg-153431205726` | `po4k048owkwcgwoso0owc8cg:1d928188d47e6d24ff08c4231baa2dccd85ce5d6` | restarting, exit 101 | `po4k048owkwcgwoso0owc8cg.tunetap.xyz` | 3001 | none | PostgreSQL, Redis | `apps/hetzner/klavier-dev` |
+| Klavier SvelteKit | `klavier-dev` | `xkcskk4ok44s40g8wc0800go-153431237329` | `ghcr.io/jvz-devx/coolify-klavier-sveltekit@sha256:d7351f92ce5636f74425d25b6438a1782c1fe84af62e7517a835090844d01832` | migrated; Coolify container removed | `klavier-dev.tunetap.xyz` | 3000 | none | PostgreSQL, Redis, Cloudflare R2, GitHub OAuth, Better Auth | `apps/hetzner/klavier-dev` |
+| Klavier WebSocket server | `klavier-dev` | `po4k048owkwcgwoso0owc8cg-153431205726` | `ghcr.io/jvz-devx/coolify-klavier-websocket@sha256:ffaf94dad0901a8b27805a48c4aa7471fb88919faf05d3dd3c7f36aad380447c` | migrated; Coolify container removed | `po4k048owkwcgwoso0owc8cg.tunetap.xyz` | 3001 | none | PostgreSQL, Redis | `apps/hetzner/klavier-dev` |
 
 ### Application Databases
 
 | Database | Coolify project | Container | Image | Status | Port | Storage | Used by | GitOps target |
 |---|---|---|---|---|---:|---|---|---|
-| PostgreSQL | `klavier-dev` | `rwgkogsg8o0c804o0ssosw8w` | `postgres:17-alpine` | healthy | 5432 | Docker volume `postgres-data-rwgkogsg8o0c804o0ssosw8w -> /var/lib/postgresql/data` | Klavier SvelteKit and WebSocket server | StatefulSet or CloudNativePG later |
-| Redis | `klavier-dev` | `fs0ccwkcwwg04kg4wkgos04o` | `redis:7.2` | healthy | 6379 | Docker volume `redis-data-fs0ccwkcwwg04kg4wkgos04o -> /data` | Klavier SvelteKit and WebSocket server | StatefulSet or Deployment with PVC |
+| PostgreSQL | `klavier-dev` | `rwgkogsg8o0c804o0ssosw8w` | `postgres:17-alpine` | migrated; Coolify container removed | 5432 | Hetzner PVC `postgres-data`; old Docker volume left as recovery trail | Klavier SvelteKit and WebSocket server | `apps/hetzner/klavier-dev/postgres.yaml` |
+| Redis | `klavier-dev` | `fs0ccwkcwwg04kg4wkgos04o` | `redis:7.2` | migrated; Coolify container removed | 6379 | Hetzner PVC `redis-data`; old Docker volume left as recovery trail | Klavier SvelteKit and WebSocket server | `apps/hetzner/klavier-dev/redis.yaml` |
 
 ### Coolify Control Plane
 
@@ -254,10 +254,15 @@ Given the current repo already runs Open WebUI against CLIProxyAPI, this may be 
 
 ### `apps/hetzner/tunetap-app`
 
-- Deployment from the current generated image or, preferably, rebuild from source in CI and push to GHCR.
+- Deployment from the committed Coolify container image:
+  `ghcr.io/jvz-devx/coolify-tunetap-app@sha256:74eff492e808ddd6e26ee83723c93ce686f992a7b74ef21d9ec2c5d8568fae12`.
+- The committed image includes the original `/app/data/database.db` snapshot.
+- Init container seeds `tunetap-data` PVC on first boot if `/data/database.db` does not exist.
+- Main container mounts `tunetap-data` at `/app/data`.
 - Service port 3000.
-- Ingress for `app.tunetap.xyz`.
-- SOPS Secret for `DATABASE_URL` if still needed.
+- Homelab ingress route for `app.tunetap.xyz` uses the Tailscale proxy
+  `tunetap-app-hetzner.zebu-dorian.ts.net`.
+- `DATABASE_URL=file:/app/data/database.db`.
 - Confirm whether Puppeteer/Chrome is truly required because the current env includes Puppeteer settings.
 
 ### `apps/hetzner/cv-web`

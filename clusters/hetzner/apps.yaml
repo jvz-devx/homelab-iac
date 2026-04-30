@@ -1,0 +1,23 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  dependsOn:
+    - name: infrastructure-controllers
+    - name: infrastructure-configs
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./apps/hetzner
+  prune: true
+  force: true
+  wait: true
+  timeout: 15m
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age

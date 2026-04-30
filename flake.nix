@@ -31,13 +31,16 @@
           ];
 
           shellHook = ''
-            export KUBECONFIG="$PWD/kubeconfig"
+            export KUBECONFIG="$PWD/kubeconfig:$PWD/kubeconfig-hetzner"
             export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"
             pre-commit install --allow-missing-config >/dev/null 2>&1 || true
             echo "Homelab IaC devShell loaded"
             echo "Tools: ansible, flux, kubectl, helm, sops, age, cloudflared, k9s"
-            if [[ ! -f "$KUBECONFIG" ]]; then
-              echo "⚠ no kubeconfig at $KUBECONFIG — run ./scripts/fetch-kubeconfig.sh once"
+            if [[ ! -f "$PWD/kubeconfig" ]]; then
+              echo "⚠ no homelab kubeconfig at $PWD/kubeconfig — run ./scripts/fetch-kubeconfig.sh once"
+            fi
+            if [[ ! -f "$PWD/kubeconfig-hetzner" ]]; then
+              echo "⚠ no Hetzner kubeconfig at $PWD/kubeconfig-hetzner"
             fi
           '';
         };

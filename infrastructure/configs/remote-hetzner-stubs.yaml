@@ -123,6 +123,21 @@ spec:
       port: 3001
       protocol: TCP
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lobechat
+  namespace: remote-hetzner
+  annotations:
+    tailscale.com/tailnet-fqdn: lobechat-hetzner.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -241,6 +256,33 @@ spec:
     - hosts:
         - app.tunetap.xyz
       secretName: tunetap-app-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lobechat
+  namespace: remote-hetzner
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: lobechat.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lobechat
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - lobechat.jensvanzutphen.com
+      secretName: lobechat-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

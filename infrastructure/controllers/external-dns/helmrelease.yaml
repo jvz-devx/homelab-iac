@@ -63,6 +63,7 @@ spec:
       - ingress
     domainFilters:
       - jensvanzutphen.com
+      - tunetap.xyz
     policy: upsert-only
     txtOwnerId: k3s-homelab
     # No --annotation-filter: all Ingresses under domainFilters are fair

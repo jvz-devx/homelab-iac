@@ -15,7 +15,7 @@ spec:
   path: ./apps/hetzner
   prune: true
   force: true
-  wait: true
+  wait: false
   timeout: 15m
   decryption:
     provider: sops

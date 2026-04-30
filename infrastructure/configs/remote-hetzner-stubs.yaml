@@ -66,6 +66,21 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: prowlarr
+  namespace: remote-hetzner
+  annotations:
+    tailscale.com/tailnet-fqdn: prowlarr-hetzner.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 9696
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: tunetap-app
   namespace: remote-hetzner
   annotations:
@@ -172,6 +187,33 @@ spec:
     - hosts:
         - dart.tunetap.xyz
       secretName: dartbingo-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prowlarr
+  namespace: remote-hetzner
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: prowlarr.tunetap.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prowlarr
+                port:
+                  number: 9696
+  tls:
+    - hosts:
+        - prowlarr.tunetap.xyz
+      secretName: prowlarr-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

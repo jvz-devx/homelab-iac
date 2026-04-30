@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: pgvector/pgvector:pg17
+          image: paradedb/paradedb:latest-pg17
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_DB

@@ -34,6 +34,8 @@ spec:
               value: node
             - name: REDIS_URL
               value: redis://redis:6379
+            - name: S3_ENDPOINT
+              value: https://s3.amazonaws.com
             - name: ENABLED_OPENAI
               value: "1"
             - name: ENABLED_OLLAMA

@@ -1,18 +1,19 @@
 # Coolify To Hetzner GitOps Migration
 
-This document inventories the Docker/Coolify workloads on `coolify-ubuntu-4gb-fsn1-1` and describes how to reproduce them declaratively in the Hetzner Kubernetes GitOps cluster.
+This document inventories the former Docker/Coolify workloads on `coolify-ubuntu-4gb-fsn1-1` and records how they were reproduced declaratively in the Hetzner Kubernetes GitOps cluster.
 
 Inventory date: 2026-04-30
+Decommission date: 2026-04-30
 
 ## Source Host
 
-Verified through the Hetzner Cloud API and SSH.
+The source host was verified through the Hetzner Cloud API and SSH during migration. It has now been decommissioned.
 
 | Field | Value |
 |---|---|
 | Hetzner server ID | `111924551` |
 | Name | `coolify-ubuntu-4gb-fsn1-1` |
-| Status | `running` |
+| Status | deleted |
 | Server type | `cpx32` |
 | Location | `fsn1` |
 | Datacenter | `fsn1-dc14` |
@@ -23,7 +24,14 @@ Verified through the Hetzner Cloud API and SSH.
 | Hetzner volumes | none |
 | Hetzner firewalls | none attached |
 
-The host has no Hetzner private network or attached Hetzner volumes. Current app-to-app traffic is local Docker bridge networking. Persistent data is in Docker named volumes and `/data/coolify/...` bind mounts.
+The host had no Hetzner private network or attached Hetzner volumes. Persistent data was in Docker named volumes and `/data/coolify/...` bind mounts. The Coolify VM was deleted after the selected workloads and data were migrated or intentionally discarded.
+
+Removed old Cloudflare records that pointed at `159.69.186.8`:
+
+- `bedrock.tunetap.xyz`
+- `minecraft.tunetap.xyz`
+- `*.tunetap.xyz`
+- `jensvanzutphen.com`
 
 ## High-Level Topology
 
@@ -47,12 +55,12 @@ For GitOps, reproduce the app topology, not the Coolify control plane. The Cooli
 
 | App | Coolify project | Container | Image | Status | Public domain(s) | App port | Storage | Dependencies | GitOps target |
 |---|---|---|---|---|---|---:|---|---|---|
-| Open WebUI | `my-first-project` | `wwkgscg0cg80skks8gk44cws-193442560243` | `ghcr.io/open-webui/open-webui:main` | healthy | `chat.tunetap.xyz` | 1234 | `/data/coolify/applications/wwkgscg0cg80skks8gk44cws -> /app/backend/data` | OpenAI-compatible API via env | Already exists in homelab; optional Hetzner port as `apps/hetzner/openwebui` |
+| Open WebUI | `my-first-project` | `wwkgscg0cg80skks8gk44cws-193442560243` | `ghcr.io/open-webui/open-webui:main` | old Coolify copy discarded; active `chat.jensvanzutphen.com` backend migrated to Hetzner | `chat.tunetap.xyz` | 1234 | old Coolify `/app/backend/data` discarded; homelab Open WebUI data restored to Hetzner PVC | OpenAI-compatible API via env | `apps/hetzner/openwebui` |
 | Prowlarr | `prowlarr` | `c4c4oowosg04okgkgkgk4c88-092609951372` | `lscr.io/linuxserver/prowlarr:latest` | migrated; Coolify container removed | `prowlarr.tunetap.xyz` | 9696 | Hetzner PVC `prowlarr-config -> /config`; old Coolify bind dir left as recovery trail | restored `/config` including `prowlarr.db` | `apps/hetzner/prowlarr` |
 | Tunetap app | `tunetap` | `mwkcggs4c4wsgcwoggogwkk4-145216530096` | `ghcr.io/jvz-devx/coolify-tunetap-app@sha256:74eff492e808ddd6e26ee83723c93ce686f992a7b74ef21d9ec2c5d8568fae12` | migrated; Coolify container removed | `app.tunetap.xyz` | 3000 | Hetzner PVC `tunetap-data -> /app/data` | SQLite `DATABASE_URL=file:/app/data/database.db`; Puppeteer env retained | `apps/hetzner/tunetap-app` |
 | CV web | `tunetap` | `sw88os0occgccw0g88sgk4sk-111703755342` | `ghcr.io/jvz-devx/coolify-cv-web@sha256:62d9688c2b471b931770e0f8ab6d7f8058e1589e6beace9405a3a6bda76310bb` | migrated; Coolify container removed | `cv.tunetap.xyz`, `cv.jensvanzutphen.com` | 3000 | none | none seen | `apps/hetzner/cv-web` |
 | Dart Bingo | `dartbingo` | `nc044040wwks0gkg8ogwwc0c-154334423467` | `ghcr.io/jvz-devx/coolify-dartbingo@sha256:782a9e2582d3197b337393ab20e2508c38d00c4dd18391152e86a91b8f54903b` | migrated; Coolify container removed | `dart.tunetap.xyz` | 3000 | none | none seen | `apps/hetzner/dartbingo` |
-| Sweet Heist | `sweet-heist` | `a0kkgsok4go8g0c4g8gsck0k-203517326375` | `a0kkgsok4go8g0c4g8gsck0k:cf7399ac0549150c3a9c6523a015366509cdcbf1` | healthy | `a0kkgsok4go8g0c4g8gsck0k.tunetap.xyz` | 3000 | none | none seen | `apps/hetzner/sweet-heist` |
+| Sweet Heist | `sweet-heist` | `a0kkgsok4go8g0c4g8gsck0k-203517326375` | `a0kkgsok4go8g0c4g8gsck0k:cf7399ac0549150c3a9c6523a015366509cdcbf1` | discarded with Coolify VM | `a0kkgsok4go8g0c4g8gsck0k.tunetap.xyz` | 3000 | none | none seen | not migrated |
 | Klavier SvelteKit | `klavier-dev` | `xkcskk4ok44s40g8wc0800go-153431237329` | `ghcr.io/jvz-devx/coolify-klavier-sveltekit@sha256:d7351f92ce5636f74425d25b6438a1782c1fe84af62e7517a835090844d01832` | migrated; Coolify container removed | `klavier-dev.tunetap.xyz` | 3000 | none | PostgreSQL, Redis, Cloudflare R2, GitHub OAuth, Better Auth | `apps/hetzner/klavier-dev` |
 | Klavier WebSocket server | `klavier-dev` | `po4k048owkwcgwoso0owc8cg-153431205726` | `ghcr.io/jvz-devx/coolify-klavier-websocket@sha256:ffaf94dad0901a8b27805a48c4aa7471fb88919faf05d3dd3c7f36aad380447c` | migrated; Coolify container removed | `po4k048owkwcgwoso0owc8cg.tunetap.xyz` | 3001 | none | PostgreSQL, Redis | `apps/hetzner/klavier-dev` |
 
@@ -65,16 +73,16 @@ For GitOps, reproduce the app topology, not the Coolify control plane. The Cooli
 
 ### Coolify Control Plane
 
-These should not be migrated as app workloads unless the goal is to keep Coolify itself.
+These were deleted with the Coolify VM after migration.
 
 | Component | Container | Image | Status | Ports | Storage / special access |
 |---|---|---|---|---|---|
-| Coolify app | `coolify` | `ghcr.io/coollabsio/coolify:4.0.0-beta.460` | healthy | host `8000 -> 8080`; container 8000/8443/9000 | `/data/coolify/...` bind mounts and `.env` |
-| Coolify realtime | `coolify-realtime` | `ghcr.io/coollabsio/coolify-realtime:1.0.10` | healthy | host `6001-6002` | SSH storage bind mount |
-| Coolify PostgreSQL | `coolify-db` | `postgres:15-alpine` | healthy | 5432 internal | Docker volume `coolify-db` |
-| Coolify Redis | `coolify-redis` | `redis:7-alpine` | healthy | 6379 internal | Docker volume `coolify-redis` |
-| Coolify proxy | `coolify-proxy` | `traefik:latest` | healthy | host 80, 443/tcp, 443/udp, 8080 | Docker socket, `/data/coolify/proxy` |
-| Coolify sentinel | `coolify-sentinel` | `ghcr.io/coollabsio/sentinel:0.0.21` | healthy | none public | Docker socket, app DB |
+| Coolify app | `coolify` | `ghcr.io/coollabsio/coolify:4.0.0-beta.460` | deleted | host `8000 -> 8080`; container 8000/8443/9000 | discarded |
+| Coolify realtime | `coolify-realtime` | `ghcr.io/coollabsio/coolify-realtime:1.0.10` | deleted | host `6001-6002` | discarded |
+| Coolify PostgreSQL | `coolify-db` | `postgres:15-alpine` | deleted | 5432 internal | discarded |
+| Coolify Redis | `coolify-redis` | `redis:7-alpine` | deleted | 6379 internal | discarded |
+| Coolify proxy | `coolify-proxy` | `traefik:latest` | deleted | host 80, 443/tcp, 443/udp, 8080 | discarded |
+| Coolify sentinel | `coolify-sentinel` | `ghcr.io/coollabsio/sentinel:0.0.21` | deleted | none public | discarded |
 
 ## Docker Networks
 
@@ -345,7 +353,7 @@ tar -C /var/lib/docker/volumes -czf klavier-redis-data.tgz redis-data-fs0ccwkcww
 8. Add Ingresses and DNS records.
 9. Smoke test each service on the Kubernetes URL.
 10. Stop the matching Coolify container and verify traffic still works.
-11. Keep the Coolify VM intact until all data-backed apps have survived a restart and backup restore test.
+11. Delete the Coolify VM once migrated workloads are healthy and discarded workloads are confirmed unneeded.
 
 ## Runtime Checks After Each App
 
@@ -363,15 +371,13 @@ kubectl -n <namespace> get pod,pvc
 curl -I https://<domain>
 ```
 
-## Open Questions
+## Final Decommission Result
 
-- Which generated images have source repositories available for clean GHCR rebuilds?
-- Should `chat.tunetap.xyz` become the existing Open WebUI, or should the old Coolify Open WebUI remain separate?
-- Should Klavier WebSocket keep its generated hostname or get a stable domain?
-- Is the Tunetap app database external, or should it get its own Postgres in Kubernetes?
-- Is Redis persistence needed for Klavier, or can Redis start empty?
-- Which apps should move under `jensvanzutphen.com` versus staying under `tunetap.xyz`?
-- Should Prowlarr be public at all, or Tailscale-only?
+- All Docker containers on `coolify-ubuntu-4gb-fsn1-1` were removed.
+- Hetzner server `111924551` was deleted.
+- Hetzner Cloud now only lists the GitOps k3s node `hetzner-k3s-1`.
+- Cloudflare no longer has records pointing at `159.69.186.8` in `tunetap.xyz` or `jensvanzutphen.com`.
+- Local migration archives remain under repo-local `.tmp/migration/` and are intentionally untracked.
 
 ## Raw Inventory Location
 

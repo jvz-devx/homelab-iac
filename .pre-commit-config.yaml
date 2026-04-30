@@ -37,3 +37,24 @@ repos:
         entry: scripts/hooks/sops-check.sh
         language: script
         files: (secret\.yaml$|\.sops\.(yml|yaml)$)
+
+      - id: tofu-fmt
+        name: Check OpenTofu formatting
+        entry: scripts/validate.sh tofu-fmt
+        language: script
+        files: ^terraform/.*\.tf$
+        pass_filenames: false
+
+      - id: tofu-validate
+        name: Validate OpenTofu modules
+        entry: scripts/validate.sh tofu-validate
+        language: script
+        files: ^terraform/.*\.tf$
+        pass_filenames: false
+
+      - id: ansible-syntax
+        name: Check Ansible playbook syntax
+        entry: scripts/validate.sh ansible-syntax
+        language: script
+        files: ^ansible/.*\.(yml|yaml|j2)$
+        pass_filenames: false

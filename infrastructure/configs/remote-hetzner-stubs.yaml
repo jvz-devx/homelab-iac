@@ -51,6 +51,21 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: rudy-website
+  namespace: remote-hetzner
+  annotations:
+    tailscale.com/tailnet-fqdn: rudy-website-hetzner.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: dartbingo
   namespace: remote-hetzner
   annotations:
@@ -160,6 +175,33 @@ spec:
         - cv.tunetap.xyz
         - cv.jensvanzutphen.com
       secretName: cv-web-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rudy-website
+  namespace: remote-hetzner
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: rudy.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rudy-website
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - rudy.jensvanzutphen.com
+      secretName: rudy-website-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

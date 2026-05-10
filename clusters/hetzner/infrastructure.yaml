@@ -42,3 +42,7 @@ spec:
   path: ./infrastructure/hetzner/configs
   prune: true
   timeout: 5m
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age

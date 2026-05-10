@@ -18,7 +18,7 @@ spec:
         - name: ghcr-auth
       containers:
         - name: rudy-website
-          image: ghcr.io/jvz-devx/rudy-website@sha256:b8fa943ed89f92ee278d99d097ba84cffc8786693e3f795104516d4730d947bf
+          image: ghcr.io/jvz-devx/rudy-website:latest@sha256:b8fa943ed89f92ee278d99d097ba84cffc8786693e3f795104516d4730d947bf # {"$imagepolicy": "flux-system:rudy-website"}
           imagePullPolicy: IfNotPresent
           env:
             - name: HOST

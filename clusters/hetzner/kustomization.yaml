@@ -6,3 +6,4 @@ resources:
   - flux-system/gotk-sync.yaml
   - infrastructure.yaml
   - apps.yaml
+  - image-automation.yaml

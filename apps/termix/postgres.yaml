@@ -6,6 +6,8 @@ metadata:
   namespace: termix
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: termix-postgres
@@ -66,7 +68,6 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              cpu: 50m
               memory: 256Mi
             limits:
               cpu: "1"

@@ -6,6 +6,8 @@ metadata:
   namespace: termix
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: termix-gateway
@@ -47,7 +49,6 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              cpu: 50m
               memory: 128Mi
             limits:
               cpu: "1"

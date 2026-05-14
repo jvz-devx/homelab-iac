@@ -1,0 +1,91 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: termix-postgres
+  namespace: termix
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: termix-postgres
+  template:
+    metadata:
+      labels:
+        app: termix-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: termixkit-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: termixkit-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: termixkit-secrets
+                  key: POSTGRES_DB
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - termixkit
+                - -d
+                - termixkit
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - termixkit
+                - -d
+                - termixkit
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: termixkit-postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: termix-postgres
+  namespace: termix
+spec:
+  type: ClusterIP
+  selector:
+    app: termix-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres

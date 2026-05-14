@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: termix-gateway
+  namespace: termix
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: termix-gateway
+  template:
+    metadata:
+      labels:
+        app: termix-gateway
+    spec:
+      containers:
+        - name: gateway
+          image: devolutions/devolutions-gateway:2026.1.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 7171
+              name: http
+          env:
+            - name: DGW_LISTEN
+              value: 0.0.0.0:7171
+            - name: DGW_SUBJECT
+              value: termix.jensvanzutphen.com
+            - name: WEB_APP_ENABLED
+              value: "true"
+            - name: WEB_APP_AUTHENTICATION
+              value: None
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/devolutions-gateway
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: termixkit-gateway-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: termix-gateway
+  namespace: termix
+spec:
+  type: ClusterIP
+  selector:
+    app: termix-gateway
+  ports:
+    - name: http
+      port: 7171
+      targetPort: http

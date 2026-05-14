@@ -14,29 +14,78 @@ spec:
       labels:
         app: termix
     spec:
+      imagePullSecrets:
+        - name: ghcr-auth
+      initContainers:
+        - name: migrate
+          image: ghcr.io/jvz-devx/termixkit:87d40e2433bb
+          imagePullPolicy: IfNotPresent
+          command:
+            - node
+            - scripts/migrate.mjs
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: termixkit-secrets
+                  key: DATABASE_URL
+          securityContext:
+            allowPrivilegeEscalation: false
       containers:
         - name: termix
-          image: ghcr.io/lukegus/termix:latest
-          imagePullPolicy: Always
+          image: ghcr.io/jvz-devx/termixkit:87d40e2433bb
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 4090
+            - containerPort: 3000
               name: http
           env:
+            - name: NODE_ENV
+              value: production
+            - name: HOST
+              value: 0.0.0.0
             - name: PORT
-              value: "4090"
-            - name: DATA_DIR
-              value: /app/data
-            - name: GUACD_HOST
-              value: guacd
-            - name: GUACD_PORT
-              value: "4822"
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
+              value: "3000"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: termixkit-secrets
+                  key: DATABASE_URL
+            - name: ORIGIN
+              value: https://termix.jensvanzutphen.com
+            - name: TERMIXKIT_INSECURE_LOCAL_HTTP
+              value: "0"
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: termixkit-secrets
+                  key: APP_SECRET
+            - name: BODY_SIZE_LIMIT
+              value: 55M
+            - name: CREDENTIAL_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: termixkit-secrets
+                  key: CREDENTIAL_MASTER_KEY
+            - name: MICROSOFT_AUTH_ENABLED
+              value: "0"
+            - name: TERMIXKIT_SSH_KNOWN_HOSTS_PATH
+              value: /var/lib/termixkit/ssh-known-hosts.json
+            - name: TERMIXKIT_SSH_TRUST_ON_FIRST_USE
+              value: "0"
+            - name: TERMIXKIT_SSH_ALLOW_PRODUCTION_TOFU
+              value: "0"
+            - name: GATEWAY_URL
+              value: http://termix-gateway:7171
+            - name: GATEWAY_PUBLIC_URL
+              value: https://termix.jensvanzutphen.com/gateway
+            - name: GATEWAY_PROVISIONER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: termixkit-secrets
+                  key: GATEWAY_PROVISIONER_KEY
           volumeMounts:
-            - name: data
-              mountPath: /app/data
+            - name: app-data
+              mountPath: /var/lib/termixkit
           securityContext:
             allowPrivilegeEscalation: false
           readinessProbe:
@@ -53,12 +102,12 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: 250m
+              memory: 512Mi
             limits:
-              cpu: 500m
-              memory: 1Gi
+              cpu: "2"
+              memory: 2Gi
       volumes:
-        - name: data
+        - name: app-data
           persistentVolumeClaim:
-            claimName: termix-data
+            claimName: termixkit-app-data

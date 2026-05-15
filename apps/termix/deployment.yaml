@@ -72,9 +72,9 @@ spec:
             - name: TERMIXKIT_SSH_KNOWN_HOSTS_PATH
               value: /var/lib/termixkit/ssh-known-hosts.json
             - name: TERMIXKIT_SSH_TRUST_ON_FIRST_USE
-              value: "0"
+              value: "1"
             - name: TERMIXKIT_SSH_ALLOW_PRODUCTION_TOFU
-              value: "0"
+              value: "1"
             - name: GATEWAY_URL
               value: http://termix-gateway:7171
             - name: GATEWAY_PUBLIC_URL

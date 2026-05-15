@@ -2,10 +2,10 @@
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageRepository
 metadata:
-  name: rudy-website
+  name: termixkit
   namespace: flux-system
 spec:
-  image: ghcr.io/jvz-devx/rudy-website
+  image: ghcr.io/jvz-devx/termixkit
   interval: 1m0s
   secretRef:
     name: ghcr-auth
@@ -13,13 +13,13 @@ spec:
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImagePolicy
 metadata:
-  name: rudy-website
+  name: termixkit
   namespace: flux-system
 spec:
   imageRepositoryRef:
-    name: rudy-website
+    name: termixkit
   filterTags:
-    pattern: '^latest$'
+    pattern: '^main$'
   policy:
     alphabetical:
       order: asc
@@ -29,7 +29,7 @@ spec:
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageUpdateAutomation
 metadata:
-  name: app-image-digests
+  name: termixkit-image-digest
   namespace: flux-system
 spec:
   interval: 5m0s
@@ -45,7 +45,7 @@ spec:
         name: fluxcdbot
         email: fluxcdbot@users.noreply.github.com
       messageTemplate: |
-        chore(images): update container image digests
+        chore(images): update TermixKit image digest
 
         {{ range .Changed.Changes -}}
         - {{ .OldValue }} -> {{ .NewValue }}
@@ -53,5 +53,5 @@ spec:
     push:
       branch: main
   update:
-    path: ./apps/hetzner
+    path: ./apps/termix
     strategy: Setters

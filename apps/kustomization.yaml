@@ -6,5 +6,4 @@ resources:
   - cliproxyapi
   - openwebui
   - resonance
-  - rustdesk-server
   - termix

@@ -19,7 +19,7 @@ spec:
         - name: ghcr-auth
       initContainers:
         - name: migrate
-          image: ghcr.io/jvz-devx/termixkit:main@sha256:c023ef24b524ca708f7e994731ab2e6f8794f96e99a996d4379a378f7cf2a917 # {"$imagepolicy": "flux-system:termixkit"}
+          image: ghcr.io/jvz-devx/termixkit:main@sha256:d05b436e9c22194c458415db099dac8e67e1cc91ccc73fadca75de4fb47feca9 # {"$imagepolicy": "flux-system:termixkit"}
           imagePullPolicy: IfNotPresent
           command:
             - node
@@ -34,7 +34,7 @@ spec:
             allowPrivilegeEscalation: false
       containers:
         - name: termix
-          image: ghcr.io/jvz-devx/termixkit:main@sha256:c023ef24b524ca708f7e994731ab2e6f8794f96e99a996d4379a378f7cf2a917 # {"$imagepolicy": "flux-system:termixkit"}
+          image: ghcr.io/jvz-devx/termixkit:main@sha256:d05b436e9c22194c458415db099dac8e67e1cc91ccc73fadca75de4fb47feca9 # {"$imagepolicy": "flux-system:termixkit"}
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000

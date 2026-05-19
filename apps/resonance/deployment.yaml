@@ -5,7 +5,7 @@ metadata:
   name: resonance-bot
   namespace: resonance
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: resonance-bot
@@ -33,17 +33,20 @@ spec:
             - until nc -z pot-server 4416; do sleep 2; done
       containers:
         - name: bot
-          image: ghcr.io/jvz-devx/resonance@sha256:540325abed2c87784d9563e94ac2fd9c9b578bbeb8e650b06a44e1ea860764f0
+          image: ghcr.io/jvz-devx/resonance@sha256:ed119c612248aa0d6a361ba2d22c491711f99a35c02ec20f6b7488efb5ef5a13
           imagePullPolicy: Always
           envFrom:
             - secretRef:
                 name: resonance-env
+          env:
+            - name: YTDLP_WPC_BROWSER_PATH
+              value: /usr/local/bin/chromium-wpc
           securityContext:
             allowPrivilegeEscalation: false
           resources:
             requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 1
+              cpu: 250m
               memory: 512Mi
+            limits:
+              cpu: 2
+              memory: 1536Mi

@@ -33,7 +33,7 @@ spec:
             - until nc -z pot-server 4416; do sleep 2; done
       containers:
         - name: bot
-          image: ghcr.io/jvz-devx/resonance@sha256:ed119c612248aa0d6a361ba2d22c491711f99a35c02ec20f6b7488efb5ef5a13
+          image: ghcr.io/jvz-devx/resonance@sha256:e5f54af794668ab32dcf27de9dd9ac6513ec5b510f5c5fffabec70710c566953
           imagePullPolicy: Always
           envFrom:
             - secretRef:

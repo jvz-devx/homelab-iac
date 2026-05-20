@@ -45,7 +45,7 @@ spec:
             allowPrivilegeEscalation: false
           resources:
             requests:
-              cpu: "1"
+              cpu: 600m
               memory: 512Mi
             limits:
               cpu: 2

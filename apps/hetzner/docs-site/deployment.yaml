@@ -16,6 +16,8 @@ spec:
       labels:
         app: docs-site
     spec:
+      imagePullSecrets:
+        - name: ghcr-auth
       initContainers:
         - name: db-push
           image: ghcr.io/jvz-devx/docs-site:main

@@ -56,3 +56,29 @@
     dest: /dev/kmsg
     state: link
     force: true
+
+- name: Install /dev/kmsg compatibility unit for k3s in LXC
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/k3s-kmsg.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Provide /dev/kmsg compatibility for k3s in LXC
+      DefaultDependencies=no
+      Before=k3s.service
+      ConditionPathExists=/dev/console
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/ln -sf /dev/console /dev/kmsg
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=sysinit.target
+
+- name: Ensure /dev/kmsg compatibility unit is enabled and started
+  ansible.builtin.systemd:
+    name: k3s-kmsg
+    enabled: true
+    state: started
+    daemon_reload: true

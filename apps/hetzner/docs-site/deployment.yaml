@@ -16,7 +16,7 @@ spec:
       labels:
         app: docs-site
       annotations:
-        docs-site.jvz.dev/app-revision: f59ec1d
+        docs-site.jvz.dev/app-revision: 2117e7d
     spec:
       imagePullSecrets:
         - name: ghcr-auth

@@ -7,6 +7,8 @@ metadata:
   namespace: docs-site
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
 spec:
   ingressClassName: traefik
   rules:

@@ -26,6 +26,7 @@ spec:
             - npx
             - drizzle-kit
             - push
+            - --force
           env:
             - name: DATABASE_URL
               value: /data/docs-site.db

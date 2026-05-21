@@ -23,7 +23,7 @@ spec:
       initContainers:
         - name: db-push
           image: ghcr.io/jvz-devx/docs-site:main
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command:
             - npx
             - drizzle-kit
@@ -40,7 +40,7 @@ spec:
       containers:
         - name: docs-site
           image: ghcr.io/jvz-devx/docs-site:main
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 3000

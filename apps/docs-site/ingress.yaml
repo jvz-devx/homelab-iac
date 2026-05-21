@@ -1,0 +1,26 @@
+---
+# LAN-only Cloudflare-managed hostname, matching termix/files.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: docs-site
+  namespace: docs-site
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: docs.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docs-site
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - docs.jensvanzutphen.com
+      secretName: docs-site-tls

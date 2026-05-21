@@ -1,0 +1,128 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docs-site
+  namespace: docs-site
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: docs-site
+  template:
+    metadata:
+      labels:
+        app: docs-site
+    spec:
+      initContainers:
+        - name: db-push
+          image: ghcr.io/jvz-devx/docs-site:main
+          imagePullPolicy: IfNotPresent
+          command:
+            - npx
+            - drizzle-kit
+            - push
+          env:
+            - name: DATABASE_URL
+              value: /data/docs-site.db
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          securityContext:
+            allowPrivilegeEscalation: false
+      containers:
+        - name: docs-site
+          image: ghcr.io/jvz-devx/docs-site:main
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: HOST
+              value: 0.0.0.0
+            - name: PORT
+              value: "3000"
+            - name: ORIGIN
+              value: https://docs.jensvanzutphen.com
+            - name: DATABASE_URL
+              value: /data/docs-site.db
+            - name: OBSIDIAN_MCP_URL
+              value: http://192.168.1.57:3010/sse
+            - name: OBSIDIAN_MCP_VAULT_ROOT
+              value: /vault
+            - name: HERMES_SSH_HOST
+              value: 192.168.1.54
+            - name: HERMES_SSH_PORT
+              value: "22"
+            - name: HERMES_SSH_USER
+              value: ubuntu
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: docs-site-secrets
+                  key: BETTER_AUTH_SECRET
+            - name: DOCS_ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: docs-site-secrets
+                  key: DOCS_ADMIN_EMAIL
+            - name: DOCS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: docs-site-secrets
+                  key: DOCS_ADMIN_PASSWORD
+            - name: DOCS_ADMIN_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: docs-site-secrets
+                  key: DOCS_ADMIN_NAME
+            - name: HERMES_SSH_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: docs-site-secrets
+                  key: HERMES_SSH_PRIVATE_KEY
+                  optional: true
+            - name: HERMES_SSH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: docs-site-secrets
+                  key: HERMES_SSH_PASSWORD
+                  optional: true
+            - name: HERMES_SSH_HOST_FINGERPRINT
+              valueFrom:
+                secretKeyRef:
+                  name: docs-site-secrets
+                  key: HERMES_SSH_HOST_FINGERPRINT
+                  optional: true
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: docs-site-data

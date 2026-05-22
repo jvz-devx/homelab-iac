@@ -5,7 +5,9 @@ resources:
   - namespace.yaml
   - ghcr-auth-secret.yaml
   - secret.yaml
+  - cloudflared-secret.yaml
   - pvc.yaml
   - deployment.yaml
+  - cloudflared-deployment.yaml
   - service.yaml
   - ingress.yaml

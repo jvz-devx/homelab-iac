@@ -2,27 +2,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudflared
-  namespace: cloudflared
+  name: docs-site-cloudflared
+  namespace: docs-site
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cloudflared
+      app: docs-site-cloudflared
   template:
     metadata:
       labels:
-        app: cloudflared
+        app: docs-site-cloudflared
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-      tolerations:
-        - key: node.kubernetes.io/not-ready
-          operator: Exists
-          effect: NoSchedule
-        - key: node.kubernetes.io/unreachable
-          operator: Exists
-          effect: NoSchedule
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:2025.11.1
@@ -61,8 +52,8 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              cpu: 100m
+              cpu: 25m
               memory: 64Mi
             limits:
-              cpu: 500m
+              cpu: 250m
               memory: 128Mi

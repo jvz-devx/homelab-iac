@@ -23,9 +23,9 @@ variable "homelab_traefik_service" {
 }
 
 variable "docs_site_tailnet_service" {
-  description = "Hetzner docs-site service reached over Tailscale by cloudflared."
+  description = "Hetzner docs-site service reached by the docs-site cloudflared connector."
   type        = string
-  default     = "http://100.66.171.97"
+  default     = "http://docs-site.docs-site.svc.cluster.local:80"
 }
 
 variable "jensvanzutphen_zone_id" {

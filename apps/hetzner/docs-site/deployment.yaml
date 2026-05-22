@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,7 +21,7 @@ spec:
         - name: ghcr-auth
       initContainers:
         - name: db-push
-          image: ghcr.io/jvz-devx/docs-site:main # {"$imagepolicy": "flux-system:docs-site"}
+          image: ghcr.io/jvz-devx/docs-site:main@sha256:38f4bce2f71ff401d0b130c04eb79fe13b2fbba5124670e8ad1ea222af780ecc # {"$imagepolicy": "flux-system:docs-site"}
           imagePullPolicy: Always
           command:
             - npx
@@ -39,7 +38,7 @@ spec:
             allowPrivilegeEscalation: false
       containers:
         - name: docs-site
-          image: ghcr.io/jvz-devx/docs-site:main # {"$imagepolicy": "flux-system:docs-site"}
+          image: ghcr.io/jvz-devx/docs-site:main@sha256:38f4bce2f71ff401d0b130c04eb79fe13b2fbba5124670e8ad1ea222af780ecc # {"$imagepolicy": "flux-system:docs-site"}
           imagePullPolicy: Always
           ports:
             - name: http

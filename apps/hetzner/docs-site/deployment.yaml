@@ -21,7 +21,7 @@ spec:
         - name: ghcr-auth
       initContainers:
         - name: db-push
-          image: ghcr.io/jvz-devx/docs-site:main@sha256:9abc42644fc48b6bffa8561d22886b02d0ac34b4539fd929799715a6611a8db3 # {"$imagepolicy": "flux-system:docs-site"}
+          image: ghcr.io/jvz-devx/docs-site:main@sha256:7da45f9b965a423bbf20c29304eaf67b392105b2a3a14739c5ad8295a7f957e7 # {"$imagepolicy": "flux-system:docs-site"}
           imagePullPolicy: Always
           command:
             - npx
@@ -38,7 +38,7 @@ spec:
             allowPrivilegeEscalation: false
       containers:
         - name: docs-site
-          image: ghcr.io/jvz-devx/docs-site:main@sha256:9abc42644fc48b6bffa8561d22886b02d0ac34b4539fd929799715a6611a8db3 # {"$imagepolicy": "flux-system:docs-site"}
+          image: ghcr.io/jvz-devx/docs-site:main@sha256:7da45f9b965a423bbf20c29304eaf67b392105b2a3a14739c5ad8295a7f957e7 # {"$imagepolicy": "flux-system:docs-site"}
           imagePullPolicy: Always
           ports:
             - name: http

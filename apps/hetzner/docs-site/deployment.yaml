@@ -54,10 +54,20 @@ spec:
               value: https://docs.jensvanzutphen.com
             - name: DATABASE_URL
               value: /data/docs-site.db
-            - name: OBSIDIAN_MCP_URL
-              value: http://192.168.1.57:3010/sse
-            - name: OBSIDIAN_MCP_VAULT_ROOT
-              value: /vault
+            - name: VAULT_GIT_URL
+              value: git@github.com:jvz-devx/vault.git
+            - name: VAULT_GIT_BRANCH
+              value: main
+            - name: VAULT_GIT_ROOT
+              value: /data/vault
+            - name: VAULT_GIT_PULL_TTL_SECONDS
+              value: "30"
+            - name: VAULT_GIT_COMMIT_NAME
+              value: docs-site
+            - name: VAULT_GIT_COMMIT_EMAIL
+              value: docs-site@users.noreply.github.com
+            - name: VAULT_GIT_KNOWN_HOSTS
+              value: github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHzMJOjbxD4T35nS6m7FcxsBG9S5V2NPM6P0VoKHg1r6
             - name: HERMES_SSH_HOST
               value: 192.168.1.54
             - name: HERMES_SSH_PORT
@@ -102,6 +112,11 @@ spec:
                   name: docs-site-secrets
                   key: HERMES_SSH_HOST_FINGERPRINT
                   optional: true
+            - name: VAULT_GIT_SSH_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: docs-site-secrets
+                  key: VAULT_GIT_SSH_PRIVATE_KEY
           volumeMounts:
             - name: data
               mountPath: /data

@@ -5,6 +5,10 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
   config = {
     ingress = [
       {
+        hostname = "docs.jensvanzutphen.com"
+        service  = var.docs_site_tailnet_service
+      },
+      {
         hostname = "*.jensvanzutphen.com"
         service  = var.homelab_traefik_service
       },

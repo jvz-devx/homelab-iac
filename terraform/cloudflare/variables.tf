@@ -22,6 +22,12 @@ variable "homelab_traefik_service" {
   default     = "http://traefik.traefik.svc.cluster.local:80"
 }
 
+variable "docs_site_tailnet_service" {
+  description = "Hetzner docs-site service reached over Tailscale by cloudflared."
+  type        = string
+  default     = "http://100.66.171.97"
+}
+
 variable "jensvanzutphen_zone_id" {
   description = "Cloudflare zone ID for jensvanzutphen.com."
   type        = string

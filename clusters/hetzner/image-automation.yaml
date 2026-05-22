@@ -2,6 +2,33 @@
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageRepository
 metadata:
+  name: docs-site
+  namespace: flux-system
+spec:
+  image: ghcr.io/jvz-devx/docs-site
+  interval: 1m0s
+  secretRef:
+    name: ghcr-auth
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: docs-site
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: docs-site
+  filterTags:
+    pattern: '^main$'
+  policy:
+    alphabetical:
+      order: asc
+  digestReflectionPolicy: Always
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
   name: rudy-website
   namespace: flux-system
 spec:

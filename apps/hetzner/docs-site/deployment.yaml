@@ -67,7 +67,7 @@ spec:
             - name: VAULT_GIT_COMMIT_EMAIL
               value: docs-site@users.noreply.github.com
             - name: VAULT_GIT_KNOWN_HOSTS
-              value: github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHzMJOjbxD4T35nS6m7FcxsBG9S5V2NPM6P0VoKHg1r6
+              value: github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
             - name: HERMES_SSH_HOST
               value: 192.168.1.54
             - name: HERMES_SSH_PORT
@@ -111,7 +111,6 @@ spec:
                 secretKeyRef:
                   name: docs-site-secrets
                   key: HERMES_SSH_HOST_FINGERPRINT
-                  optional: true
             - name: VAULT_GIT_SSH_PRIVATE_KEY
               valueFrom:
                 secretKeyRef:

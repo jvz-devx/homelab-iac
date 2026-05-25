@@ -9,6 +9,7 @@ resources:
   - prowlarr
   - tunetap-app
   - klavier-dev
-  - rudy-website
+  # Rudy is now hosted on Cloudflare Workers.
+  # - rudy-website
   - resonance
   - docs-site

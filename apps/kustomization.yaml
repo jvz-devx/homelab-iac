@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - copyparty
   - cliproxyapi
+  - hetzner-firewall-home-ip
   - openwebui
   - resonance
   - termix

@@ -1,0 +1,92 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hetzner-firewall-home-ip
+  namespace: hetzner-firewall-home-ip
+spec:
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: hetzner-firewall-home-ip
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: updater
+              image: alpine:3.22
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: FIREWALL_ID
+                  value: "10908357"
+                - name: ADMIN_PORTS
+                  value: "22 6443"
+                - name: IP_ENDPOINT
+                  value: https://api.ipify.org
+                - name: HCLOUD_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: hetzner-firewall-home-ip
+                      key: HCLOUD_TOKEN
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  apk add --no-cache ca-certificates curl jq >/dev/null
+
+                  current_ip="$(curl -fsS --retry 3 --max-time 10 "$IP_ENDPOINT")"
+                  if ! printf '%s' "$current_ip" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+                    echo "Current WAN IPv4 lookup returned an invalid value: $current_ip" >&2
+                    exit 1
+                  fi
+
+                  cidr="$current_ip/32"
+                  firewall_url="https://api.hetzner.cloud/v1/firewalls/$FIREWALL_ID"
+                  auth_header="Authorization: Bearer $HCLOUD_TOKEN"
+
+                  rules="$(
+                    curl -fsS --retry 3 -H "$auth_header" "$firewall_url" |
+                      jq \
+                        --arg cidr "$cidr" \
+                        --arg ports "$ADMIN_PORTS" \
+                        '
+                          ($ports | split(" ")) as $admin_ports
+                          | .firewall.rules
+                          | map(
+                              if .direction == "in"
+                                and .protocol == "tcp"
+                                and (.port as $port | $admin_ports | index($port))
+                              then .source_ips = [$cidr]
+                              else .
+                              end
+                            )
+                        '
+                  )"
+
+                  jq -n --argjson rules "$rules" '{rules: $rules}' |
+                    curl -fsS --retry 3 \
+                      -X POST \
+                      -H "$auth_header" \
+                      -H "Content-Type: application/json" \
+                      -d @- \
+                      "$firewall_url/actions/set_rules" >/dev/null
+
+                  echo "Updated Hetzner firewall $FIREWALL_ID admin source IPs for ports $ADMIN_PORTS to $cidr"
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 64Mi
+                limits:
+                  cpu: 250m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL

@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: liverpc-docs
   namespace: liverpc-docs
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: live-rpc-docs-homelab
 spec:
   selector:
     app.kubernetes.io/name: liverpc-docs

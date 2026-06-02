@@ -1,0 +1,28 @@
+---
+# Public via Cloudflare Tunnel.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: liverpc-docs
+  namespace: liverpc-docs
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: liverpc.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: liverpc-docs
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - liverpc.jensvanzutphen.com
+      secretName: liverpc-docs-tls

@@ -9,6 +9,11 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
         service  = var.docs_site_tailnet_service
       },
       {
+        # Emergency override while k3s service DNS/routing is unhealthy.
+        hostname = "live-rpc.jensvanzutphen.com"
+        service  = "http://10.42.0.109:8000"
+      },
+      {
         hostname = "*.jensvanzutphen.com"
         service  = var.homelab_traefik_service
       },

@@ -5,6 +5,7 @@ resources:
   - copyparty
   - cliproxyapi
   - hetzner-firewall-home-ip
+  - liverpc-docs
   - openwebui
   - resonance
   - termix

@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   - copyparty
   - cliproxyapi
-  - cod-zombies-pap-checklist
   - hetzner-firewall-home-ip
   - liverpc-docs
   - openwebui

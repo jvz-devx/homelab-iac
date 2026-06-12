@@ -4,7 +4,11 @@ kind: Service
 metadata:
   name: cod-zombies-pap-checklist
   namespace: cod-zombies-pap-checklist
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: cod-zombies-pap-hetzner
 spec:
+  type: ClusterIP
   selector:
     app.kubernetes.io/name: cod-zombies-pap-checklist
   ports:

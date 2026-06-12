@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cod-zombies-pap-checklist
+  namespace: cod-zombies-pap-checklist
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cod-zombies-pap-checklist
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cod-zombies-pap-checklist
+    spec:
+      imagePullSecrets:
+        - name: ghcr-auth
+      containers:
+        - name: cod-zombies-pap-checklist
+          image: ghcr.io/jvz-devx/cod-zombies-pap-checklist:main # {"$imagepolicy": "flux-system:cod-zombies-pap-checklist"}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: HOST
+              value: 0.0.0.0
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"
+            - name: ORIGIN
+              value: https://pap.jensvanzutphen.com
+          ports:
+            - name: http
+              containerPort: 3000
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi

@@ -55,3 +55,60 @@ spec:
   update:
     path: ./apps/termix
     strategy: Setters
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: cod-zombies-pap-checklist
+  namespace: flux-system
+spec:
+  image: ghcr.io/jvz-devx/cod-zombies-pap-checklist
+  interval: 1m0s
+  secretRef:
+    name: ghcr-auth
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: cod-zombies-pap-checklist
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cod-zombies-pap-checklist
+  filterTags:
+    pattern: '^main$'
+  policy:
+    alphabetical:
+      order: asc
+  digestReflectionPolicy: Always
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: cod-zombies-pap-checklist-image-digest
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: |
+        chore(images): update COD Zombies PAP image digest
+
+        {{ range .Changed.Changes -}}
+        - {{ .OldValue }} -> {{ .NewValue }}
+        {{ end -}}
+    push:
+      branch: main
+  update:
+    path: ./apps/cod-zombies-pap-checklist
+    strategy: Setters

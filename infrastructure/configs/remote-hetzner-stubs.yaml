@@ -51,6 +51,21 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: cod-zombies-pap-checklist
+  namespace: remote-hetzner
+  annotations:
+    tailscale.com/tailnet-fqdn: cod-zombies-pap-hetzner.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: cv-web
   namespace: remote-hetzner
   annotations:
@@ -179,6 +194,33 @@ spec:
     - hosts:
         - docs.jensvanzutphen.com
       secretName: docs-site-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cod-zombies-pap-checklist
+  namespace: remote-hetzner
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: pap.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cod-zombies-pap-checklist
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - pap.jensvanzutphen.com
+      secretName: cod-zombies-pap-checklist-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

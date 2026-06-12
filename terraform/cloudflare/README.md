@@ -21,7 +21,6 @@ tofu -chdir=terraform/cloudflare apply
 ## Managed Resources
 
 - Existing `homelab` Cloudflare Tunnel config:
-  - `pap.jensvanzutphen.com -> http://cod-zombies-pap-checklist.cod-zombies-pap-checklist.svc.cluster.local:3000`
   - `*.jensvanzutphen.com -> http://traefik.traefik.svc.cluster.local:80`
   - `*.tunetap.xyz -> http://traefik.traefik.svc.cluster.local:80`
   - fallback `http_status:404`

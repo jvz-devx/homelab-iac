@@ -14,6 +14,11 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
         service  = "http://10.42.0.109:8000"
       },
       {
+        # Direct route avoids the currently unhealthy wildcard -> Traefik origin.
+        hostname = "pap.jensvanzutphen.com"
+        service  = "http://cod-zombies-pap-checklist.cod-zombies-pap-checklist.svc.cluster.local:3000"
+      },
+      {
         hostname = "*.jensvanzutphen.com"
         service  = var.homelab_traefik_service
       },

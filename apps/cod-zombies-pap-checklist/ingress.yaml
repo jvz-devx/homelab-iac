@@ -1,8 +1,5 @@
 ---
-# Traffic model: LAN-only via public DNS.
-#   DNS: pap.jensvanzutphen.com -> 192.168.1.110 (Traefik LB, RFC1918).
-#   Resolvable from anywhere; reachable only from the LAN/Tailscale path.
-#   TLS: Let's Encrypt via DNS-01 (cert-manager letsencrypt-dns01).
+# Public via Cloudflare Tunnel.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -10,6 +7,8 @@ metadata:
   namespace: cod-zombies-pap-checklist
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
 spec:
   ingressClassName: traefik
   rules:

@@ -9,6 +9,11 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
         service  = var.docs_site_tailnet_service
       },
       {
+        # Direct Hetzner route via the docs-site cloudflared connector.
+        hostname = "pap.jensvanzutphen.com"
+        service  = "http://cod-zombies-pap-checklist.cod-zombies-pap-checklist.svc.cluster.local:3000"
+      },
+      {
         # Emergency override while k3s service DNS/routing is unhealthy.
         hostname = "live-rpc.jensvanzutphen.com"
         service  = "http://10.42.0.109:8000"

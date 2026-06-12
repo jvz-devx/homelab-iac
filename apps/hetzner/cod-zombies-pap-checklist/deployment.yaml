@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,7 +17,7 @@ spec:
         - name: ghcr-auth
       containers:
         - name: cod-zombies-pap-checklist
-          image: ghcr.io/jvz-devx/cod-zombies-pap-checklist:main # {"$imagepolicy": "flux-system:cod-zombies-pap-checklist"}
+          image: ghcr.io/jvz-devx/cod-zombies-pap-checklist:main@sha256:08d4a48df7b103599282ed20886bbdcc598505e000ae92d29f1688882dbf87e0 # {"$imagepolicy": "flux-system:cod-zombies-pap-checklist"}
           imagePullPolicy: IfNotPresent
           env:
             - name: HOST

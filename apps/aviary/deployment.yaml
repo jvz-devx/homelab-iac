@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aviary
+  namespace: aviary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: aviary
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: aviary
+    spec:
+      imagePullSecrets:
+        - name: ghcr-auth
+      containers:
+        - name: aviary
+          image: ghcr.io/jvz-devx/n8n-camera@sha256:2c761253cf8c8ac7f849553f2536e327fd78a03508943740b7b8ebed2aa80bc9
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: aviary-env
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi

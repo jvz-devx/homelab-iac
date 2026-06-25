@@ -28,6 +28,7 @@ resources:
   - tailscale-operator/secret.yaml
   - tailscale-operator/helmrelease.yaml
   # NAS storage
-  - nas/namespace.yaml
-  - nas/secret.yaml
-  - nas/deployment.yaml
+  # Temporarily disabled after k3s recovery; rclone-nas is crashlooping.
+  # - nas/namespace.yaml
+  # - nas/secret.yaml
+  # - nas/deployment.yaml

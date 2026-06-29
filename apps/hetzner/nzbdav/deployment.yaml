@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       annotations:
-        app.kubernetes.io/config-revision: nntp-connections-16
+        app.kubernetes.io/config-revision: eweka-12
       labels:
         app.kubernetes.io/name: nzbdav
     spec:

@@ -13,6 +13,8 @@ spec:
       app.kubernetes.io/name: nzbdav
   template:
     metadata:
+      annotations:
+        app.kubernetes.io/config-revision: nntp-connections-16
       labels:
         app.kubernetes.io/name: nzbdav
     spec:

@@ -4,6 +4,7 @@ keys.txt
 
 # Environment
 .env
+.secrets/
 
 # Kubeconfig
 kubeconfig
@@ -22,6 +23,7 @@ kubeconfig-*
 # local agent/tooling state
 .codex
 .codex/
+.firecrawl/
 
 # Ansible
 *.retry

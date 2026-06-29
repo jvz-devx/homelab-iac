@@ -1,0 +1,167 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nzbdav
+  namespace: nzbdav
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nzbdav
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nzbdav
+    spec:
+      containers:
+        - name: nzbdav
+          image: ghcr.io/nzbdav-dev/nzbdav:latest
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - sh
+                  - -lc
+                  - |
+                    (
+                      set -eu
+                      for _ in $(seq 1 60); do
+                        if curl -fsS http://127.0.0.1:8080/health >/dev/null; then
+                          break
+                        fi
+                        sleep 2
+                      done
+
+                      providers='{"Providers":[{'
+                      providers="${providers}\"Type\":1,"
+                      providers="${providers}\"Host\":\"${NNTP_HOST}\","
+                      providers="${providers}\"Port\":${NNTP_PORT},"
+                      providers="${providers}\"UseSsl\":${NNTP_USE_SSL},"
+                      providers="${providers}\"User\":\"${NNTP_USER}\","
+                      providers="${providers}\"Pass\":\"${NNTP_PASS}\","
+                      providers="${providers}\"MaxConnections\":${NNTP_CONNECTIONS}"
+                      providers="${providers}}]}"
+                      curl -fsS -X POST \
+                        -H "x-api-key: $FRONTEND_BACKEND_API_KEY" \
+                        --data-urlencode "usenet.providers=$providers" \
+                        --data-urlencode "usenet.max-download-connections=$NNTP_CONNECTIONS" \
+                        --data-urlencode "usenet.article-buffer-size=40" \
+                        --data-urlencode "usenet.streaming-priority=80" \
+                        --data-urlencode "api.user-agent=SABnzbd/4.5.5" \
+                        --data-urlencode "general.base-url=https://nzbdav.jensvanzutphen.com" \
+                        http://127.0.0.1:8080/api/update-config >/dev/null
+
+                      onboarding=$(curl -fsS \
+                        -H "x-api-key: $FRONTEND_BACKEND_API_KEY" \
+                        http://127.0.0.1:8080/api/is-onboarding)
+                      if printf '%s' "$onboarding" | grep -q '"isOnboarding":true'; then
+                        curl -fsS -X POST \
+                          -H "x-api-key: $FRONTEND_BACKEND_API_KEY" \
+                          --data-urlencode "username=$NZBDAV_ADMIN_USER" \
+                          --data-urlencode "password=$NZBDAV_ADMIN_PASSWORD" \
+                          --data-urlencode "type=admin" \
+                          http://127.0.0.1:8080/api/create-account >/dev/null
+                      fi
+                    ) &
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: Europe/Amsterdam
+            - name: SECURE_COOKIES
+              value: "true"
+            - name: NZB_GRAB_USER_AGENT
+              value: SABnzbd/4.5.5
+            - name: FRONTEND_BACKEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: FRONTEND_BACKEND_API_KEY
+            - name: SESSION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: SESSION_KEY
+            - name: WEBDAV_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: WEBDAV_USER
+            - name: WEBDAV_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: WEBDAV_PASSWORD
+            - name: NZBDAV_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: NZBDAV_ADMIN_USER
+            - name: NZBDAV_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: NZBDAV_ADMIN_PASSWORD
+            - name: NNTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: NNTP_HOST
+            - name: NNTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: NNTP_PORT
+            - name: NNTP_USE_SSL
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: NNTP_USE_SSL
+            - name: NNTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: NNTP_USER
+            - name: NNTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: NNTP_PASS
+            - name: NNTP_CONNECTIONS
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: NNTP_CONNECTIONS
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: nzbdav-config
+              mountPath: /config
+      volumes:
+        - name: nzbdav-config
+          persistentVolumeClaim:
+            claimName: nzbdav-config

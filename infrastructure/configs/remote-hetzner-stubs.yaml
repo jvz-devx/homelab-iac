@@ -405,3 +405,45 @@ spec:
         - klavier-dev.tunetap.xyz
         - po4k048owkwcgwoso0owc8cg.tunetap.xyz
       secretName: klavier-dev-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nzbdav
+  namespace: remote-hetzner
+  annotations:
+    tailscale.com/tailnet-fqdn: nzbdav-hetzner.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nzbdav
+  namespace: remote-hetzner
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: nzbdav.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nzbdav
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - nzbdav.jensvanzutphen.com
+      secretName: nzbdav-tls

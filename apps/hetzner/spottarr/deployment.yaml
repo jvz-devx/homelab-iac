@@ -54,11 +54,11 @@ spec:
             - name: USENET__MAXCONNECTIONS
               value: "30"
             - name: SPOTNET__RETRIEVEAFTER
-              value: "2025-07-01T00:00:00Z"
+              value: "2008-01-01T00:00:00Z"
             - name: SPOTNET__IMPORTBATCHSIZE
               value: "10000"
             - name: SPOTNET__RETENTIONDAYS
-              value: "365"
+              value: "0"
             - name: SPOTNET__IMPORTADULTCONTENT
               value: "false"
             - name: NEWZNAB__APIKEY

@@ -112,6 +112,20 @@ resource "hcloud_server_network" "k3s" {
   ]
 }
 
+resource "hcloud_volume" "local_path" {
+  name     = "${var.cluster_name}-localpath"
+  size     = var.local_path_volume_size
+  location = var.location
+  format   = "ext4"
+  labels   = local.labels
+}
+
+resource "hcloud_volume_attachment" "local_path" {
+  volume_id = hcloud_volume.local_path.id
+  server_id = hcloud_server.k3s.id
+  automount = false
+}
+
 resource "local_file" "ansible_inventory" {
   filename        = "${path.module}/${var.ansible_inventory_path}"
   file_permission = "0644"

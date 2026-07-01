@@ -21,7 +21,10 @@ cilium_cluster_name: hetzner
 cilium_cluster_id: 2
 
 tailscale_hostname: hetzner-k3s
-tailscale_accept_routes: true
+# Hetzner advertises its own pod/service CIDRs. Accepting routes can make the
+# node install a stale remote route to 10.52.0.0/16 or 10.53.0.0/16 during
+# migrations, which breaks pod-to-API traffic.
+tailscale_accept_routes: false
 tailscale_advertise_routes:
   - 10.52.0.0/16
   - 10.53.0.0/16

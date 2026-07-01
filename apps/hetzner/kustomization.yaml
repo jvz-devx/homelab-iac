@@ -6,11 +6,12 @@ resources:
   - cod-zombies-pap-checklist
   - cv-web
   - dartbingo
-  - openwebui
+  # Disabled during Hetzner cost-recovery migration; re-enable when needed.
+  # - openwebui
   - prowlarr
   - spottarr
-  - tunetap-app
-  - klavier-dev
+  # - tunetap-app
+  # - klavier-dev
   - nzbdav
   # Rudy is now hosted on Cloudflare Workers.
   # - rudy-website

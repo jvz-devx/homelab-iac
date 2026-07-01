@@ -22,3 +22,8 @@ output "ansible_inventory_path" {
   description = "Generated Ansible inventory path."
   value       = local_file.ansible_inventory.filename
 }
+
+output "local_path_volume_id" {
+  description = "Hetzner Volume ID for k3s local-path storage."
+  value       = hcloud_volume.local_path.id
+}

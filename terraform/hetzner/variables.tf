@@ -17,9 +17,15 @@ variable "server_name" {
 }
 
 variable "server_type" {
-  description = "Hetzner Cloud server type. cx43 gives extra local disk headroom for k3s local-path workloads."
+  description = "Hetzner Cloud server type. Keep compute small and put k3s local-path data on a separate volume."
   type        = string
-  default     = "cx43"
+  default     = "cx33"
+}
+
+variable "local_path_volume_size" {
+  description = "Hetzner Volume size in GB for /var/lib/rancher/k3s/storage."
+  type        = number
+  default     = 100
 }
 
 variable "location" {

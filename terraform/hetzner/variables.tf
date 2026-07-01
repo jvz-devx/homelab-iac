@@ -17,9 +17,9 @@ variable "server_name" {
 }
 
 variable "server_type" {
-  description = "Hetzner Cloud server type. cx33 gives a small but realistic 4 vCPU / 8 GB baseline for k3s."
+  description = "Hetzner Cloud server type. cx43 gives extra local disk headroom for k3s local-path workloads."
   type        = string
-  default     = "cx33"
+  default     = "cx43"
 }
 
 variable "location" {

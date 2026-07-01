@@ -1,6 +1,6 @@
 cluster_name = "hetzner-k3s"
 server_name  = "hetzner-k3s-1"
-server_type  = "cx33"
+server_type  = "cx43"
 location     = "fsn1"
 
 # Replace with your own admin IP ranges. Do not use 0.0.0.0/0 for SSH/API.

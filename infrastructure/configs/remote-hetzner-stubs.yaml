@@ -39,7 +39,7 @@ metadata:
   name: docs-site
   namespace: remote-hetzner
   annotations:
-    tailscale.com/tailnet-fqdn: docs-site-hetzner.zebu-dorian.ts.net
+    tailscale.com/tailnet-fqdn: docs-site-hetzner-1.zebu-dorian.ts.net
 spec:
   type: ExternalName
   externalName: placeholder
@@ -54,7 +54,7 @@ metadata:
   name: cod-zombies-pap-checklist
   namespace: remote-hetzner
   annotations:
-    tailscale.com/tailnet-fqdn: cod-zombies-pap-hetzner.zebu-dorian.ts.net
+    tailscale.com/tailnet-fqdn: cod-zombies-pap-hetzner-1.zebu-dorian.ts.net
 spec:
   type: ExternalName
   externalName: placeholder
@@ -69,7 +69,7 @@ metadata:
   name: cv-web
   namespace: remote-hetzner
   annotations:
-    tailscale.com/tailnet-fqdn: cv-web-hetzner.zebu-dorian.ts.net
+    tailscale.com/tailnet-fqdn: cv-web-hetzner-1.zebu-dorian.ts.net
 spec:
   type: ExternalName
   externalName: placeholder
@@ -99,7 +99,7 @@ metadata:
   name: dartbingo
   namespace: remote-hetzner
   annotations:
-    tailscale.com/tailnet-fqdn: dartbingo-hetzner.zebu-dorian.ts.net
+    tailscale.com/tailnet-fqdn: dartbingo-hetzner-1.zebu-dorian.ts.net
 spec:
   type: ExternalName
   externalName: placeholder
@@ -114,58 +114,13 @@ metadata:
   name: prowlarr
   namespace: remote-hetzner
   annotations:
-    tailscale.com/tailnet-fqdn: prowlarr-hetzner.zebu-dorian.ts.net
+    tailscale.com/tailnet-fqdn: prowlarr-hetzner-1.zebu-dorian.ts.net
 spec:
   type: ExternalName
   externalName: placeholder
   ports:
     - name: http
       port: 9696
-      protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: tunetap-app
-  namespace: remote-hetzner
-  annotations:
-    tailscale.com/tailnet-fqdn: tunetap-app-hetzner.zebu-dorian.ts.net
-spec:
-  type: ExternalName
-  externalName: placeholder
-  ports:
-    - name: http
-      port: 3000
-      protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: klavier-dev
-  namespace: remote-hetzner
-  annotations:
-    tailscale.com/tailnet-fqdn: klavier-dev-hetzner.zebu-dorian.ts.net
-spec:
-  type: ExternalName
-  externalName: placeholder
-  ports:
-    - name: http
-      port: 3000
-      protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: klavier-ws
-  namespace: remote-hetzner
-  annotations:
-    tailscale.com/tailnet-fqdn: klavier-ws-hetzner.zebu-dorian.ts.net
-spec:
-  type: ExternalName
-  externalName: placeholder
-  ports:
-    - name: http
-      port: 3001
       protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
@@ -341,78 +296,13 @@ spec:
         - prowlarr.tunetap.xyz
       secretName: prowlarr-tls
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: tunetap-app
-  namespace: remote-hetzner
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-dns01
-    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
-    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-spec:
-  ingressClassName: traefik
-  rules:
-    - host: app.tunetap.xyz
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: tunetap-app
-                port:
-                  number: 3000
-  tls:
-    - hosts:
-        - app.tunetap.xyz
-      secretName: tunetap-app-tls
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: klavier-dev
-  namespace: remote-hetzner
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-dns01
-    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
-    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-spec:
-  ingressClassName: traefik
-  rules:
-    - host: klavier-dev.tunetap.xyz
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: klavier-dev
-                port:
-                  number: 3000
-    - host: po4k048owkwcgwoso0owc8cg.tunetap.xyz
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: klavier-ws
-                port:
-                  number: 3001
-  tls:
-    - hosts:
-        - klavier-dev.tunetap.xyz
-        - po4k048owkwcgwoso0owc8cg.tunetap.xyz
-      secretName: klavier-dev-tls
----
 apiVersion: v1
 kind: Service
 metadata:
   name: nzbdav
   namespace: remote-hetzner
   annotations:
-    tailscale.com/tailnet-fqdn: nzbdav-hetzner.zebu-dorian.ts.net
+    tailscale.com/tailnet-fqdn: nzbdav-hetzner-1.zebu-dorian.ts.net
 spec:
   type: ExternalName
   externalName: placeholder

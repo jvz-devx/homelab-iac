@@ -8,6 +8,7 @@ resources:
   - dartbingo
   - openwebui
   - prowlarr
+  - spottarr
   - tunetap-app
   - klavier-dev
   - nzbdav

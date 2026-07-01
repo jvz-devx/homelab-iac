@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spottarr
+  namespace: spottarr
+spec:
+  selector:
+    app.kubernetes.io/name: spottarr
+  ports:
+    - name: http
+      port: 8383
+      targetPort: http
+      protocol: TCP

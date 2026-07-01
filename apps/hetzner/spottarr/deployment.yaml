@@ -1,0 +1,95 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spottarr
+  namespace: spottarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: spottarr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: spottarr
+    spec:
+      securityContext:
+        fsGroup: 1654
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: spottarr
+          image: ghcr.io/spottarr/spottarr:latest
+          imagePullPolicy: Always
+          env:
+            - name: TZ
+              value: Europe/Amsterdam
+            - name: USENET__HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  name: spottarr-secrets
+                  key: USENET__HOSTNAME
+            - name: USENET__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: spottarr-secrets
+                  key: USENET__USERNAME
+            - name: USENET__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: spottarr-secrets
+                  key: USENET__PASSWORD
+            - name: USENET__PORT
+              valueFrom:
+                secretKeyRef:
+                  name: spottarr-secrets
+                  key: USENET__PORT
+            - name: USENET__USETLS
+              valueFrom:
+                secretKeyRef:
+                  name: spottarr-secrets
+                  key: USENET__USETLS
+            - name: USENET__MAXCONNECTIONS
+              value: "30"
+            - name: SPOTNET__RETRIEVEAFTER
+              value: "2025-07-01T00:00:00Z"
+            - name: SPOTNET__IMPORTBATCHSIZE
+              value: "10000"
+            - name: SPOTNET__RETENTIONDAYS
+              value: "365"
+            - name: SPOTNET__IMPORTADULTCONTENT
+              value: "false"
+            - name: NEWZNAB__APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: spottarr-secrets
+                  key: NEWZNAB__APIKEY
+          ports:
+            - name: http
+              containerPort: 8383
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: spottarr-data
+              mountPath: /data
+      volumes:
+        - name: spottarr-data
+          persistentVolumeClaim:
+            claimName: spottarr-data

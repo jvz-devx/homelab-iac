@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       annotations:
-        app.kubernetes.io/config-revision: eweka-30-torbox-4
+        app.kubernetes.io/config-revision: eweka-30-torbox-10-vipernews-10
       labels:
         app.kubernetes.io/name: nzbdav
     spec:
@@ -54,8 +54,16 @@ spec:
                       providers="${providers}\"User\":\"${TORBOX_USER}\","
                       providers="${providers}\"Pass\":\"${TORBOX_PASS}\","
                       providers="${providers}\"MaxConnections\":${TORBOX_CONNECTIONS}"
+                      providers="${providers}},{"
+                      providers="${providers}\"Type\":1,"
+                      providers="${providers}\"Host\":\"${VIPERNEWS_HOST}\","
+                      providers="${providers}\"Port\":${VIPERNEWS_PORT},"
+                      providers="${providers}\"UseSsl\":${VIPERNEWS_USE_SSL},"
+                      providers="${providers}\"User\":\"${VIPERNEWS_USER}\","
+                      providers="${providers}\"Pass\":\"${VIPERNEWS_PASS}\","
+                      providers="${providers}\"MaxConnections\":${VIPERNEWS_CONNECTIONS}"
                       providers="${providers}}]}"
-                      max_download_connections=$((NNTP_CONNECTIONS + TORBOX_CONNECTIONS))
+                      max_download_connections=$((NNTP_CONNECTIONS + TORBOX_CONNECTIONS + VIPERNEWS_CONNECTIONS))
                       curl -fsS -X POST \
                         -H "x-api-key: $FRONTEND_BACKEND_API_KEY" \
                         --data-urlencode "usenet.providers=$providers" \
@@ -179,6 +187,36 @@ spec:
                 secretKeyRef:
                   name: nzbdav-secrets
                   key: TORBOX_CONNECTIONS
+            - name: VIPERNEWS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: VIPERNEWS_HOST
+            - name: VIPERNEWS_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: VIPERNEWS_PORT
+            - name: VIPERNEWS_USE_SSL
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: VIPERNEWS_USE_SSL
+            - name: VIPERNEWS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: VIPERNEWS_USER
+            - name: VIPERNEWS_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: VIPERNEWS_PASS
+            - name: VIPERNEWS_CONNECTIONS
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: VIPERNEWS_CONNECTIONS
           ports:
             - name: http
               containerPort: 3000

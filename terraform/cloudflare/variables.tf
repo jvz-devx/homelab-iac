@@ -34,6 +34,12 @@ variable "jensvanzutphen_zone_id" {
   default     = "9c95c564e5855e0e653867092d5723a4"
 }
 
+variable "tunetap_zone_id" {
+  description = "Cloudflare zone ID for tunetap.xyz."
+  type        = string
+  default     = "7eb0d762118d7a18c36ccf6cbda62c57"
+}
+
 variable "cliproxyapi_tailnet_ipv4" {
   description = "Tailscale IPv4 for the homelab CLIProxyAPI service proxy."
   type        = string

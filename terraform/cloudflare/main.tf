@@ -45,6 +45,41 @@ resource "cloudflare_dns_record" "chat_api_tailnet" {
   comment = "Private Tailscale-only CLIProxyAPI endpoint managed by Terraform."
 }
 
+resource "cloudflare_zero_trust_tunnel_cloudflared" "hetzner_aiostreams" {
+  account_id = var.cloudflare_account_id
+  name       = "hetzner-aiostreams"
+  config_src = "cloudflare"
+}
+
+resource "cloudflare_zero_trust_tunnel_cloudflared_config" "hetzner_aiostreams" {
+  account_id = var.cloudflare_account_id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.hetzner_aiostreams.id
+
+  config = {
+    ingress = [
+      {
+        hostname = "aiostreams.tunetap.xyz"
+        service  = "http://aiostreams.aiostreams.svc.cluster.local:3000"
+      },
+      {
+        service = "http_status:404"
+      }
+    ]
+  }
+}
+
+resource "cloudflare_dns_record" "aiostreams_tunetap" {
+  provider = cloudflare.dns
+
+  zone_id = var.tunetap_zone_id
+  name    = "aiostreams"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.hetzner_aiostreams.id}.cfargotunnel.com"
+  type    = "CNAME"
+  ttl     = 1
+  proxied = true
+  comment = "AIOStreams on Hetzner via dedicated Cloudflare Tunnel."
+}
+
 import {
   to = cloudflare_zero_trust_tunnel_cloudflared_config.homelab
   id = "2014abcab19669d48bfb71bea759c299/f4f59044-cc55-41f0-a76a-96fdfeb42dc9"

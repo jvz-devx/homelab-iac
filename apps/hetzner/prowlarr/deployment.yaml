@@ -13,6 +13,8 @@ spec:
       app.kubernetes.io/name: prowlarr
   template:
     metadata:
+      annotations:
+        app.kubernetes.io/rollout-revision: "2026-07-01-update"
       labels:
         app.kubernetes.io/name: prowlarr
     spec:
@@ -41,7 +43,7 @@ spec:
       containers:
         - name: prowlarr
           image: lscr.io/linuxserver/prowlarr:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: PUID
               value: "911"

@@ -10,6 +10,7 @@ resources:
   # - openwebui
   - prowlarr
   - spottarr
+  - aiostreams
   # - tunetap-app
   # - klavier-dev
   - nzbdav

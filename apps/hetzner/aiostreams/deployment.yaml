@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aiostreams
+  namespace: aiostreams
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: aiostreams
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: aiostreams
+    spec:
+      containers:
+        - name: aiostreams
+          image: ghcr.io/viren070/aiostreams:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BASE_URL
+              value: https://aiostreams.tunetap.xyz
+            - name: DATABASE_URI
+              value: sqlite://./data/db.sqlite
+            - name: TZ
+              value: Europe/Amsterdam
+            - name: NODE_ENV
+              value: production
+            - name: LOG_LEVEL
+              value: info
+            - name: LOG_FORMAT
+              value: json
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aiostreams-secrets
+                  key: SECRET_KEY
+            - name: AIOSTREAMS_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: aiostreams-secrets
+                  key: AIOSTREAMS_AUTH
+            - name: AIOSTREAMS_AUTH_ADMINS
+              value: jens
+            - name: AIOSTREAMS_AUTH_PROXY
+              value: jens
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: aiostreams-data
+              mountPath: /app/data
+      volumes:
+        - name: aiostreams-data
+          persistentVolumeClaim:
+            claimName: aiostreams-data

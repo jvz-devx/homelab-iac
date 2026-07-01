@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       annotations:
-        app.kubernetes.io/config-revision: eweka-12
+        app.kubernetes.io/config-revision: eweka-12-torbox-4
       labels:
         app.kubernetes.io/name: nzbdav
     spec:
@@ -46,11 +46,20 @@ spec:
                       providers="${providers}\"User\":\"${NNTP_USER}\","
                       providers="${providers}\"Pass\":\"${NNTP_PASS}\","
                       providers="${providers}\"MaxConnections\":${NNTP_CONNECTIONS}"
+                      providers="${providers}},{"
+                      providers="${providers}\"Type\":1,"
+                      providers="${providers}\"Host\":\"${TORBOX_HOST}\","
+                      providers="${providers}\"Port\":${TORBOX_PORT},"
+                      providers="${providers}\"UseSsl\":${TORBOX_USE_SSL},"
+                      providers="${providers}\"User\":\"${TORBOX_USER}\","
+                      providers="${providers}\"Pass\":\"${TORBOX_PASS}\","
+                      providers="${providers}\"MaxConnections\":${TORBOX_CONNECTIONS}"
                       providers="${providers}}]}"
+                      max_download_connections=$((NNTP_CONNECTIONS + TORBOX_CONNECTIONS))
                       curl -fsS -X POST \
                         -H "x-api-key: $FRONTEND_BACKEND_API_KEY" \
                         --data-urlencode "usenet.providers=$providers" \
-                        --data-urlencode "usenet.max-download-connections=$NNTP_CONNECTIONS" \
+                        --data-urlencode "usenet.max-download-connections=$max_download_connections" \
                         --data-urlencode "usenet.article-buffer-size=40" \
                         --data-urlencode "usenet.streaming-priority=80" \
                         --data-urlencode "api.user-agent=SABnzbd/4.5.5" \
@@ -140,6 +149,36 @@ spec:
                 secretKeyRef:
                   name: nzbdav-secrets
                   key: NNTP_CONNECTIONS
+            - name: TORBOX_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: TORBOX_HOST
+            - name: TORBOX_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: TORBOX_PORT
+            - name: TORBOX_USE_SSL
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: TORBOX_USE_SSL
+            - name: TORBOX_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: TORBOX_USER
+            - name: TORBOX_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: TORBOX_PASS
+            - name: TORBOX_CONNECTIONS
+              valueFrom:
+                secretKeyRef:
+                  name: nzbdav-secrets
+                  key: TORBOX_CONNECTIONS
           ports:
             - name: http
               containerPort: 3000

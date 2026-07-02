@@ -33,6 +33,8 @@ spec:
               value: info
             - name: LOG_FORMAT
               value: json
+            - name: FETCH_TRAKT_ALIASES
+              value: "false"
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:

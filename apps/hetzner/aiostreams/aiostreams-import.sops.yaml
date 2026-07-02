@@ -1,0 +1,18 @@
+# yamllint disable
+#ENC[AES256_GCM,data:xFvXqN/1E4UQaxueVj1+L2qBHiHyjH/ONz9oqPYt6FOKtQ+QMSRfdsTFUUXzDizFpGKyV8GQ8Wh8tRrTFaEbZYIcnmRoYU9lP7w=,iv:9E2hATCNs/6vmKabEj28e7OAdCahaCwkrookwCioayM=,tag:otmqmDHY05jKDIDjJWtxgQ==,type:comment]
+aiostreams_import_txt: ENC[AES256_GCM,data:2V16ZmV/AaNnfdxXFtvNMAkJt8pEGRq5vDIpMTIwRSJcCRQu+P8vHOzLSF6pSsd0kPKpbT970RIdkc8QmOTfX7/hnbavGU+T2WXScTm57s+PDdxGC/Ocrqwil6xdtpNQtPKfXWs8nX6Ra745cNl6QWp1nd3DhFjEGJHj/BAUfHaJgumGuSF/rTe4tAhvwWdDKo2VFe8kimTnfQ58M7uxnZtiJW+J8ubcm4T2FUtWMcox/G/Qqha15xVP28GLD+TNNQEW0VHrd8l5aWelmBawcst1F3wfu4gcEvigm94v05Leyi490BO8YN+kmmXRYYPwcDhrl5LgL9eKC8GgN7mcjvlFVxuh4KLI5s0VV/xmxYcw9Xa+PaWaolr8E+85zlHIJML95rYNUcJUQ6aU53ohF9tHYQCtanoFUgJazoDGhvhW5WyxifxelpCzUd6tvOQtyxPNou5KPMW2OuJRBsaZhHZQQDnKQGjj291KMpvasnndYznfGlyEiYNTF6kFcGzIkIIav9PYR/aQ9XVgK/Nvn5nwH+6I/1GK/trdWYaMBUFkgScvKAquQiqeTayWjPmcNfT/tQ1suNLDvnK2qVQvlwnlPar8k97HgvIAakXEMbfs9nBdR2oC1Nm7/2i1J5UFcDjcd2qhIdXrcLY2BPB2UjsoNaItCVdeOSrloZKNSoIQzWNWR3q7r/TK8wFHKBEW6/QF2IjQrGTsXPO2lNKEq/b6orak4uriwzdOXWyVikmCaZoLrdo9p6/12w==,iv:xHIOB4GyuEbUpvkOviIAIK+NbeqBWnO6k5zvpFi1x10=,tag:y3ji9vvQDH1cQn2ir30YZg==,type:str]
+sops:
+    age:
+        - recipient: age13mpnc9r9ykh406nwqzgtqketnvkpnxj02sx3qv5pae4txzynvscsjpum3s
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBteVlVUEl1Z2syTFZBSng1
+            Z1JlcTh2T0l2MFFOYmZWRG1sdXIvYVM1YVZrCkdtdVdLMEp5MXlhdmZXakdQYlJh
+            WjJZdHFDT0NZcXlRSGFTTkdkSWVtUkUKLS0tIHUxb0lWMkVJaDUrZW9iUmhsZS9P
+            VitiRCtGSGdrQ1FReUNpYStCalNJNEUKYEbY0c3rEZsLFtxw140ZBnnn7piUBWYf
+            pzets7uwEhyhYoRcK2ZX1HbEaAr13L3OuZwvUcF9aYqqviuEVlgXkg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-07-02T09:43:52Z"
+    mac: ENC[AES256_GCM,data:nL18ll5Z6DxKACDRt775SmZOzeaxm/cKiiK11KNpekFtcAlRu6xld+1kKAeCHvf0C65cE9ZgIRR4X62fzD1F+5c4XcTTiSDGir/E7zOn+YhsJtxWyjPMqjDHXPKv147C6NFUkwZF3JtMUQLBIqP95YEIrUQG8MHewRG3yDHqpGw=,iv:IInnatTYZUM+o3U3TESvaYfwTk5Hwl9hkGDT2C4Y4QU=,tag:0IpuAuNHWDN1srmgI0cSSA==,type:str]
+    unencrypted_suffix: _unencrypted
+    version: 3.11.0

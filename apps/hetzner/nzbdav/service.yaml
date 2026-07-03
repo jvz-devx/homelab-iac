@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: nzbdav
   namespace: nzbdav
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: nzbdav-hetzner
 spec:
   selector:
     app.kubernetes.io/name: nzbdav

@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: tunetap-app
   namespace: tunetap-app
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: tunetap-app-hetzner
 spec:
   selector:
     app.kubernetes.io/name: tunetap-app

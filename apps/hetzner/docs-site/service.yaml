@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: docs-site
   namespace: docs-site
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: docs-site-hetzner
 spec:
   type: ClusterIP
   selector:

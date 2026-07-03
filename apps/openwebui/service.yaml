@@ -4,8 +4,6 @@ kind: Service
 metadata:
   name: openwebui
   namespace: openwebui
-  annotations:
-    tailscale.com/tailnet-fqdn: openwebui-hetzner.zebu-dorian.ts.net
 spec:
   type: ExternalName
   externalName: placeholder

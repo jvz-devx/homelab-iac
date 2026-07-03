@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: cv-web
   namespace: cv-web
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: cv-web-hetzner
 spec:
   selector:
     app.kubernetes.io/name: cv-web

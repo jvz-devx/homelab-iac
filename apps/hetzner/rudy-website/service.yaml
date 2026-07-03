@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: rudy-website
   namespace: rudy-website
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: rudy-website-hetzner
 spec:
   selector:
     app.kubernetes.io/name: rudy-website

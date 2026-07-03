@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: aiostreams
   namespace: aiostreams
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: aiostreams-hetzner
 spec:
   selector:
     app.kubernetes.io/name: aiostreams

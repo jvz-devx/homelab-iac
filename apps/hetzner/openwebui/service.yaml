@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: openwebui
   namespace: openwebui
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: openwebui-hetzner
 spec:
   type: ClusterIP
   selector:

@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: sveltekit
   namespace: klavier-dev
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: klavier-dev-hetzner
 spec:
   selector:
     app.kubernetes.io/name: sveltekit
@@ -22,9 +19,6 @@ kind: Service
 metadata:
   name: websocket
   namespace: klavier-dev
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: klavier-ws-hetzner
 spec:
   selector:
     app.kubernetes.io/name: websocket

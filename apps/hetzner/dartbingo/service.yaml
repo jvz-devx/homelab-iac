@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: dartbingo
   namespace: dartbingo
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: dartbingo-hetzner
 spec:
   selector:
     app.kubernetes.io/name: dartbingo

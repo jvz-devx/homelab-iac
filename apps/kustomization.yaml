@@ -8,6 +8,7 @@ resources:
   - cliproxyapi
   - hetzner-firewall-home-ip
   - liverpc-docs
-  - openwebui
+  # Homelab OpenWebUI is disabled; do not keep a stale Hetzner Tailscale proxy alive.
+  # - openwebui
   - resonance
   # - termix

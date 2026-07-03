@@ -4,9 +4,6 @@ kind: Service
 metadata:
   name: prowlarr
   namespace: prowlarr
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: prowlarr-hetzner
 spec:
   selector:
     app.kubernetes.io/name: prowlarr

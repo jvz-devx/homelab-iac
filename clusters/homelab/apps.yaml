@@ -8,6 +8,7 @@ spec:
   interval: 10m0s
   dependsOn:
     - name: infrastructure-controllers
+    - name: infrastructure-configs
   sourceRef:
     kind: GitRepository
     name: flux-system

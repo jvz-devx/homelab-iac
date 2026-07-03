@@ -5,7 +5,10 @@ resources:
   - namespace.yaml
   - ghcr-auth-secret.yaml
   - secret.yaml
+  - basic-auth-secret.yaml
   - pvc.yaml
   - deployment.yaml
   - service.yaml
+  - auth-proxy-config.yaml
+  - auth-proxy.yaml
   - ingress.yaml

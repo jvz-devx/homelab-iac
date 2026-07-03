@@ -22,12 +22,6 @@ variable "homelab_traefik_service" {
   default     = "http://traefik.traefik.svc.cluster.local:80"
 }
 
-variable "docs_site_tailnet_service" {
-  description = "Hetzner docs-site service reached by the docs-site cloudflared connector."
-  type        = string
-  default     = "http://docs-site.docs-site.svc.cluster.local:80"
-}
-
 variable "jensvanzutphen_zone_id" {
   description = "Cloudflare zone ID for jensvanzutphen.com."
   type        = string

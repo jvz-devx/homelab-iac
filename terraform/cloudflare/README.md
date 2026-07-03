@@ -21,10 +21,17 @@ tofu -chdir=terraform/cloudflare apply
 ## Managed Resources
 
 - Existing `homelab` Cloudflare Tunnel config:
-  - `pap.jensvanzutphen.com -> http://cod-zombies-pap-checklist.cod-zombies-pap-checklist.svc.cluster.local:3000`
   - `*.jensvanzutphen.com -> http://traefik.traefik.svc.cluster.local:80`
   - `*.tunetap.xyz -> http://traefik.traefik.svc.cluster.local:80`
   - fallback `http_status:404`
+- Dedicated `hetzner-aiostreams` Cloudflare Tunnel config for public Hetzner apps:
+  - `docs.jensvanzutphen.com -> http://docs-site-auth.docs-site.svc.cluster.local:80`
+  - `pap.jensvanzutphen.com -> http://cod-zombies-pap-checklist.cod-zombies-pap-checklist.svc.cluster.local:3000`
+  - `cv.jensvanzutphen.com` and `cv.tunetap.xyz -> http://cv-web.cv-web.svc.cluster.local:3000`
+  - `dart.tunetap.xyz -> http://dartbingo.dartbingo.svc.cluster.local:3000`
+  - `prowlarr.tunetap.xyz -> http://prowlarr.prowlarr.svc.cluster.local:9696`
+  - `nzbdav.jensvanzutphen.com -> http://nzbdav.nzbdav.svc.cluster.local:3000`
+  - `aiostreams.tunetap.xyz -> http://aiostreams.aiostreams.svc.cluster.local:3000`
 - Private Tailscale-only DNS:
   - `chat-api.jensvanzutphen.com -> 100.71.48.37`
 

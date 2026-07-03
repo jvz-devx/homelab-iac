@@ -31,7 +31,7 @@
           ];
 
           shellHook = ''
-            export KUBECONFIG="$PWD/kubeconfig:$PWD/kubeconfig-hetzner"
+            export KUBECONFIG="$PWD/kubeconfig-hetzner:$PWD/kubeconfig"
             export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"
             pre-commit install --allow-missing-config >/dev/null 2>&1 || true
             echo "Homelab IaC devShell loaded"

@@ -39,6 +39,19 @@ if ! grep -q "server: https://${SERVER_HOST}:6443" "$TMP"; then
   exit 1
 fi
 
+if command -v yq >/dev/null 2>&1; then
+  yq -i '
+    .clusters[0].name = "homelab" |
+    .users[0].name = "homelab" |
+    .contexts[0].name = "homelab" |
+    .contexts[0].context.cluster = "homelab" |
+    .contexts[0].context.user = "homelab" |
+    ."current-context" = "homelab"
+  ' "$TMP"
+else
+  echo "yq not in PATH; leaving kubeconfig names as fetched" >&2
+fi
+
 chmod 600 "$TMP"
 mv "$TMP" "$OUT"
 trap - EXIT

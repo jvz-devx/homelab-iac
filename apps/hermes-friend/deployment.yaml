@@ -16,6 +16,22 @@ spec:
       labels:
         app: hermes-friend
     spec:
+      initContainers:
+        - name: seed-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -lc
+            - |
+              mkdir -p /opt/data/workspace
+              cp /config/config.yaml /opt/data/config.yaml
+              chown -R 10000:10000 /opt/data
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: config
+              mountPath: /config/config.yaml
+              subPath: config.yaml
       containers:
         - name: hermes
           image: nousresearch/hermes-agent:latest

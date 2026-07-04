@@ -6,6 +6,7 @@ resources:
   # - copyparty
   - aviary
   - cliproxyapi
+  - hermes-friend
   - hetzner-firewall-home-ip
   - liverpc-docs
   # Homelab OpenWebUI is disabled; do not keep a stale Hetzner Tailscale proxy alive.

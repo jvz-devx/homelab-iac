@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hermes-friend-config
+  namespace: hermes-friend
+data:
+  config.yaml: |
+    model:
+      default: gpt-5.5
+      provider: openai-codex
+      base_url: https://chatgpt.com/backend-api/codex
+    agent:
+      max_turns: 60
+      gateway_timeout: 1800
+      service_tier: fast
+      reasoning_effort: low
+      tool_use_enforcement: auto
+    memory:
+      memory_enabled: true
+      user_profile_enabled: true
+      provider: built-in
+    terminal:
+      backend: local
+      cwd: /opt/data/workspace
+      timeout: 180
+      persistent_shell: true
+    gateway:
+      strict: false
+      trust_recent_files: true

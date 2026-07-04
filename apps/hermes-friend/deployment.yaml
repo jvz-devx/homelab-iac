@@ -1,0 +1,60 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermes-friend
+  namespace: hermes-friend
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: hermes-friend
+  template:
+    metadata:
+      labels:
+        app: hermes-friend
+    spec:
+      containers:
+        - name: hermes
+          image: nousresearch/hermes-agent:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - sh
+            - -lc
+            - |
+              mkdir -p /opt/data/workspace
+              if [ ! -f /opt/data/config.yaml ]; then
+                cp /config/config.yaml /opt/data/config.yaml
+              fi
+              exec /opt/hermes/.venv/bin/hermes gateway run
+          env:
+            - name: HERMES_HOME
+              value: /opt/data
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          envFrom:
+            - secretRef:
+                name: hermes-friend-secrets
+                optional: true
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: config
+              mountPath: /config/config.yaml
+              subPath: config.yaml
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: hermes-friend-data
+        - name: config
+          configMap:
+            name: hermes-friend-config

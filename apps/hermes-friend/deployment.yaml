@@ -25,9 +25,7 @@ spec:
             - -lc
             - |
               mkdir -p /opt/data/workspace
-              if [ ! -f /opt/data/config.yaml ]; then
-                cp /config/config.yaml /opt/data/config.yaml
-              fi
+              cp /config/config.yaml /opt/data/config.yaml
               exec /opt/hermes/.venv/bin/hermes gateway run
           env:
             - name: HERMES_HOME

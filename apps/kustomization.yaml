@@ -12,4 +12,5 @@ resources:
   # Homelab OpenWebUI is disabled; do not keep a stale Hetzner Tailscale proxy alive.
   # - openwebui
   - resonance
+  - steve-website
   # - termix

@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: steve-website
+  namespace: steve-website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: steve-website
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: steve-website
+    spec:
+      imagePullSecrets:
+        - name: ghcr-auth
+      containers:
+        - name: steve-website
+          image: ghcr.io/jvz-devx/steve-website:main@sha256:32f46e1f3c81e782e970d4b37ac5f9bd702b056627376ea59ac8b2c137f7dc52
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: HOST
+              value: 0.0.0.0
+            - name: NODE_ENV
+              value: production
+            - name: ORIGIN
+              value: https://steve.jensvanzutphen.com
+            - name: PORT
+              value: "3000"
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

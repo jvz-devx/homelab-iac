@@ -17,7 +17,7 @@ spec:
         - name: ghcr-auth
       containers:
         - name: cod-zombies-pap-checklist
-          image: ghcr.io/jvz-devx/cod-zombies-pap-checklist:main@sha256:d8f535b8b50f3f12da65d7f4ecba9d44424689e48e75ec31cafbeaffb5eca4ce # {"$imagepolicy": "flux-system:cod-zombies-pap-checklist"}
+          image: ghcr.io/jvz-devx/cod-zombies-pap-checklist:main@sha256:5feb00b02d2fd4bcbb4245c3db5594656c955099adaf1f221c7b761af943ddac # {"$imagepolicy": "flux-system:cod-zombies-pap-checklist"}
           imagePullPolicy: IfNotPresent
           env:
             - name: HOST

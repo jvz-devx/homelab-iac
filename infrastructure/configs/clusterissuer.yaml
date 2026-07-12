@@ -41,4 +41,5 @@ spec:
         selector:
           dnsZones:
             - jensvanzutphen.com
+            - toep.app
             - tunetap.xyz

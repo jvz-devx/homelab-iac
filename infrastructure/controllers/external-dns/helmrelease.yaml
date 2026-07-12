@@ -63,6 +63,7 @@ spec:
       - ingress
     domainFilters:
       - jensvanzutphen.com
+      - toep.app
       - tunetap.xyz
     policy: upsert-only
     txtOwnerId: k3s-homelab

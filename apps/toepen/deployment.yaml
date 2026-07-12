@@ -30,6 +30,8 @@ spec:
               value: production
             - name: ORIGIN
               value: https://toep.app
+            - name: PUBLIC_DISCORD_CLIENT_ID
+              value: "630700637113286666"
             - name: PORT
               value: "3000"
             - name: VALKEY_URL

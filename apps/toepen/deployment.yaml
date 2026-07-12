@@ -29,7 +29,7 @@ spec:
             - name: NODE_ENV
               value: production
             - name: ORIGIN
-              value: https://toepen.jensvanzutphen.com
+              value: https://toep.app
             - name: PORT
               value: "3000"
             - name: VALKEY_URL

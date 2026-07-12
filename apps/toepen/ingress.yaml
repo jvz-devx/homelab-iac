@@ -12,6 +12,16 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
+    - host: toep.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: toepen
+                port:
+                  number: 3000
     - host: toepen.jensvanzutphen.com
       http:
         paths:
@@ -24,5 +34,6 @@ spec:
                   number: 3000
   tls:
     - hosts:
+        - toep.app
         - toepen.jensvanzutphen.com
       secretName: toepen-tls

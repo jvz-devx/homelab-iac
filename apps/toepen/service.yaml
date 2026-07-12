@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: toepen
+  namespace: toepen
+spec:
+  selector:
+    app.kubernetes.io/name: toepen
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP

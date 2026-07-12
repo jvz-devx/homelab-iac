@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toepen
+  namespace: toepen
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: toepen
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: toepen
+    spec:
+      imagePullSecrets:
+        - name: ghcr-auth
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: toepen
+          image: ghcr.io/jvz-devx/toepen:main@sha256:df2a3aad9706a26459cdb76a3e74ce00ab7c28866ae34faae41d974178823d8b # {"$imagepolicy": "flux-system:toepen"}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: toepen-env
+          env:
+            - name: HOST
+              value: 0.0.0.0
+            - name: NODE_ENV
+              value: production
+            - name: ORIGIN
+              value: https://toepen.jensvanzutphen.com
+            - name: PORT
+              value: "3000"
+            - name: VALKEY_URL
+              value: redis://valkey:6379
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

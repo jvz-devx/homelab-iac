@@ -18,7 +18,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: toepen
-          image: ghcr.io/jvz-devx/toepen:main@sha256:7ee77a1d34c1dea7e87672fdd01112bc72bccea071e62035837afad1900122ba # {"$imagepolicy": "flux-system:toepen"}
+          image: ghcr.io/jvz-devx/toepen:main@sha256:c604bb4be86e58ea4bc895dab38c9f760c3c547214d911b5d3e6e39bbda867ab # {"$imagepolicy": "flux-system:toepen"}
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:

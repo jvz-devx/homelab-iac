@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,7 +17,7 @@ spec:
         - name: ghcr-auth
       containers:
         - name: steve-website
-          image: ghcr.io/jvz-devx/steve-website:main@sha256:5a8143342a94e9c20939f17fadfa6cfa47bca858a119d983296451fb5e908dbb # {"$imagepolicy": "flux-system:steve-website"}
+          image: ghcr.io/jvz-devx/steve-website:main@sha256:418e467b41b5c860e50074d7856ff322da331eea2f49236460292c591ebaa913 # {"$imagepolicy": "flux-system:steve-website"}
           imagePullPolicy: IfNotPresent
           env:
             - name: HOST

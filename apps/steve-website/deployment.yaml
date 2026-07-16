@@ -17,7 +17,7 @@ spec:
         - name: ghcr-auth
       containers:
         - name: steve-website
-          image: ghcr.io/jvz-devx/steve-website:main@sha256:418e467b41b5c860e50074d7856ff322da331eea2f49236460292c591ebaa913 # {"$imagepolicy": "flux-system:steve-website"}
+          image: ghcr.io/jvz-devx/steve-website:main@sha256:f1132f9ce950786fa161628f9c36e68763c1efce1027e2f955e4898d3ef442f7 # {"$imagepolicy": "flux-system:steve-website"}
           imagePullPolicy: IfNotPresent
           env:
             - name: HOST

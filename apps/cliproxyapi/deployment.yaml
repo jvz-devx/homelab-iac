@@ -5,7 +5,7 @@ metadata:
   name: cliproxyapi
   namespace: cliproxyapi
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: cliproxyapi

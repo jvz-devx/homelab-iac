@@ -9,6 +9,7 @@ resources:
   - hermes-friend
   - hetzner-firewall-home-ip
   - liverpc-docs
+  - minecraft-resource-pack
   # Homelab OpenWebUI is disabled; do not keep a stale Hetzner Tailscale proxy alive.
   # - openwebui
   - resonance

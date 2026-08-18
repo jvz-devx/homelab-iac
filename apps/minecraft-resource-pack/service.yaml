@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft-resource-pack
+  namespace: minecraft-resource-pack
+spec:
+  selector:
+    app.kubernetes.io/name: minecraft-resource-pack
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

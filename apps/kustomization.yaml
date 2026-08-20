@@ -5,6 +5,7 @@ resources:
   # Temporarily disabled after k3s recovery; app-level issues still need fixing.
   # - copyparty
   - aviary
+  - boodschappen
   - cliproxyapi
   - hermes-friend
   - hetzner-firewall-home-ip

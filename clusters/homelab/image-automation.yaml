@@ -169,3 +169,60 @@ spec:
   update:
     path: ./apps/toepen
     strategy: Setters
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: boodschappen
+  namespace: flux-system
+spec:
+  image: ghcr.io/jvz-devx/boodschappen
+  interval: 1m0s
+  secretRef:
+    name: ghcr-auth
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: boodschappen
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: boodschappen
+  filterTags:
+    pattern: '^main$'
+  policy:
+    alphabetical:
+      order: asc
+  digestReflectionPolicy: Always
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: boodschappen-image-digest
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: |
+        chore(images): update Boodschappen image digest
+
+        {{ range .Changed.Changes -}}
+        - {{ .OldValue }} -> {{ .NewValue }}
+        {{ end -}}
+    push:
+      branch: main
+  update:
+    path: ./apps/boodschappen
+    strategy: Setters

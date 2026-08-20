@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: boodschappen
+  namespace: boodschappen
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: boodschappen
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: boodschappen
+    spec:
+      imagePullSecrets:
+        - name: ghcr-auth
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: boodschappen
+          image: ghcr.io/jvz-devx/boodschappen:main@sha256:13da8907478cc1d3b55f7f5eed3be98bb4772efb301a0c7949ae1e07c4e84429 # {"$imagepolicy": "flux-system:boodschappen"}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: boodschappen-env
+          env:
+            - name: HOST
+              value: 0.0.0.0
+            - name: PORT
+              value: "3000"
+            - name: NODE_ENV
+              value: production
+            - name: ORIGIN
+              value: https://boodschappen.jensvanzutphen.com
+            - name: BETTER_AUTH_URL
+              value: https://boodschappen.jensvanzutphen.com
+            - name: DATABASE_PATH
+              value: /data/boodschappen.db
+            - name: RECEIPT_STORAGE_PATH
+              value: /data/receipts
+            - name: BODY_SIZE_LIMIT
+              value: 12M
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 25m
+              memory: 192Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: boodschappen-data

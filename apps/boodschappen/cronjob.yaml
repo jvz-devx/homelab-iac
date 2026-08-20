@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: boodschappen-weekly-reminder
+  namespace: boodschappen
+spec:
+  schedule: "0 8 * * *"
+  timeZone: Europe/Amsterdam
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: trigger
+              image: curlimages/curl:8.16.0
+              command:
+                - /bin/sh
+                - -c
+              args:
+                - >-
+                  exec curl --fail --silent --show-error --request POST
+                  --header "Authorization: Bearer ${CRON_SECRET}"
+                  http://boodschappen:3000/api/jobs/weekly-reminder
+              env:
+                - name: CRON_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: boodschappen-env
+                      key: CRON_SECRET

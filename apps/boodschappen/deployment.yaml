@@ -21,7 +21,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: boodschappen
-          image: ghcr.io/jvz-devx/boodschappen:main@sha256:4e3bb468fb4e54b222bdd25044fceace7470f31025e3920062d539b3feab1ca5 # {"$imagepolicy": "flux-system:boodschappen"}
+          image: ghcr.io/jvz-devx/boodschappen:main@sha256:18337c7163cffab19bff5b00729c750af1b1e7174e125bbe12d4d0fbed6581eb # {"$imagepolicy": "flux-system:boodschappen"}
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:

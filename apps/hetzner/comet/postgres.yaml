@@ -69,11 +69,6 @@ spec:
             limits:
               cpu: "1"
               memory: 1Gi
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql

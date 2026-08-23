@@ -14,13 +14,13 @@ spec:
   template:
     metadata:
       annotations:
-        app.kubernetes.io/config-revision: eweka-30-torbox-10-vipernews-10
+        app.kubernetes.io/config-revision: infinidysk-v1.2.4-eweka-30-torbox-10-vipernews-10
       labels:
         app.kubernetes.io/name: nzbdav
     spec:
       containers:
         - name: nzbdav
-          image: ghcr.io/nzbdav-dev/nzbdav:latest
+          image: ghcr.io/infinidysk/infinidysk:v1.2.4@sha256:2b94869e8823a2b5745adc043bbb8710ace8146291a8889a20027bebf1e7e587
           imagePullPolicy: IfNotPresent
           lifecycle:
             postStart:
@@ -97,6 +97,8 @@ spec:
               value: "true"
             - name: NZB_GRAB_USER_AGENT
               value: SABnzbd/4.5.5
+            - name: TRUSTED_INTERNAL_HOSTS
+              value: prowlarr.prowlarr.svc.cluster.local
             - name: FRONTEND_BACKEND_API_KEY
               valueFrom:
                 secretKeyRef:

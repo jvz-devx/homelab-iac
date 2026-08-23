@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: aiostreams
-          image: ghcr.io/viren070/aiostreams:latest
+          image: ghcr.io/viren070/aiostreams:v2.33.2@sha256:b169ccfb2b6f351f1bc5a8a460e4e102db77a11fb4fc58222e411d96b3adb85b
           imagePullPolicy: IfNotPresent
           env:
             - name: BASE_URL

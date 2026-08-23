@@ -11,6 +11,7 @@ resources:
   - prowlarr
   - spottarr
   - aiostreams
+  - comet
   # - tunetap-app
   # - klavier-dev
   - nzbdav

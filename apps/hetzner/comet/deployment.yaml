@@ -1,0 +1,93 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comet
+  namespace: comet
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: comet
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: comet
+    spec:
+      containers:
+        - name: comet
+          image: g0ldyy/comet:latest@sha256:dca62133336e02784d02aaad861381820674d1c8e3e98a03797610b81ee4defe
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: Europe/Amsterdam
+            - name: DATABASE_TYPE
+              value: postgresql
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: comet-secrets
+                  key: DATABASE_URL
+            - name: ADMIN_DASHBOARD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: comet-secrets
+                  key: ADMIN_DASHBOARD_PASSWORD
+            - name: SCRAPE_DMM
+              value: live
+            - name: DMM_INGEST_ENABLED
+              value: "true"
+            - name: DMM_INGEST_CONCURRENT_WORKERS
+              value: "1"
+            - name: DMM_INGEST_BATCH_SIZE
+              value: "100"
+            - name: COMETNET_ENABLED
+              value: "false"
+            - name: BACKGROUND_SCRAPER_ENABLED
+              value: "false"
+            - name: PROXY_DEBRID_STREAM
+              value: "false"
+            - name: FASTAPI_WORKERS
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: comet-data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: comet-data
+          persistentVolumeClaim:
+            claimName: comet-data
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi

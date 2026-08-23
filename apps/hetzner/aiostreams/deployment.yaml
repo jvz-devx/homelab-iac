@@ -35,6 +35,10 @@ spec:
               value: json
             - name: FETCH_TRAKT_ALIASES
               value: "false"
+            - name: COMET_URL
+              value: '["http://comet.comet.svc.cluster.local:8000"]'
+            - name: DEFAULT_COMET_TIMEOUT
+              value: "10000"
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:

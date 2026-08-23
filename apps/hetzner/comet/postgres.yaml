@@ -1,0 +1,88 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: comet
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: comet-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: comet-postgres
+  namespace: comet
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: comet-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: comet-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_USER
+              value: comet
+            - name: POSTGRES_DB
+              value: comet
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: comet-secrets
+                  key: POSTGRES_PASSWORD
+          ports:
+            - name: postgres
+              containerPort: 5432
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - pg_isready -U comet -d comet
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - pg_isready -U comet -d comet
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 30Gi

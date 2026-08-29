@@ -25,6 +25,25 @@ spec:
               value: https://aiostreams.tunetap.xyz
             - name: DATABASE_URI
               value: sqlite://./data/db.sqlite
+            - name: DISK_CACHE_DIR
+              value: /app/cache
+            - name: USENET_PERFORMANCE_PROFILE
+              value: custom
+            - name: USENET_SEGMENT_DISK_CACHE_BYTES
+              value: "8000000000"
+            - name: USENET_VERIFY_MODE
+              value: census
+            - name: USENET_VERIFY_BUDGET_MS
+              value: "5000"
+            - name: USENET_DAMAGE_POLICY
+              value: strict
+            - name: USENET_MATROSKA_HOLE_FILL
+              value: "true"
+            - name: USENET_PROVIDERS
+              valueFrom:
+                secretKeyRef:
+                  name: aiostreams-secrets
+                  key: USENET_PROVIDERS
             - name: TZ
               value: Europe/Amsterdam
             - name: NODE_ENV
@@ -68,15 +87,20 @@ spec:
             periodSeconds: 20
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: 250m
+              memory: 512Mi
             limits:
-              cpu: "1"
-              memory: 1Gi
+              cpu: "2"
+              memory: 2Gi
           volumeMounts:
             - name: aiostreams-data
               mountPath: /app/data
+            - name: aiostreams-cache
+              mountPath: /app/cache
       volumes:
         - name: aiostreams-data
           persistentVolumeClaim:
             claimName: aiostreams-data
+        - name: aiostreams-cache
+          persistentVolumeClaim:
+            claimName: aiostreams-cache

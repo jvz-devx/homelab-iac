@@ -70,6 +70,7 @@ spec:
                         --data-urlencode "usenet.max-download-connections=$max_download_connections" \
                         --data-urlencode "usenet.article-buffer-size=40" \
                         --data-urlencode "usenet.streaming-priority=80" \
+                        --data-urlencode "usenet.streaming-write-timeout-seconds=10" \
                         --data-urlencode "api.user-agent=SABnzbd/4.5.5" \
                         --data-urlencode "general.base-url=https://nzbdav.jensvanzutphen.com" \
                         http://127.0.0.1:8080/api/update-config >/dev/null
@@ -93,6 +94,8 @@ spec:
               value: "1000"
             - name: TZ
               value: Europe/Amsterdam
+            - name: STREAM_TRACE_EVENTS
+              value: "100000"
             - name: SECURE_COOKIES
               value: "true"
             - name: NZB_GRAB_USER_AGENT

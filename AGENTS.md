@@ -55,6 +55,20 @@ kubectl get pods -A
 flux get kustomizations
 ```
 
+### Hetzner runtime access
+
+If `kubeconfig-hetzner` times out against the public API endpoint, connect over
+Tailscale and run kubectl on the node:
+
+```bash
+ssh root@hetzner-k3s-1 'k3s kubectl get pods -A'
+ssh root@hetzner-k3s-1 'k3s kubectl logs -n nzbdav deploy/nzbdav --since=1h --timestamps'
+ssh root@hetzner-k3s-1 'k3s kubectl logs -n aiostreams deploy/aiostreams --since=1h --timestamps'
+```
+
+`hetzner-k3s-1` resolves through Tailscale MagicDNS to `100.92.46.32`; the
+machine itself currently reports hostname `hetzner-k3s-2`.
+
 ## Key Design Decisions
 
 ### Everything is disabled in k3s, managed by Flux

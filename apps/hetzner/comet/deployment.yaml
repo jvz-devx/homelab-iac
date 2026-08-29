@@ -36,17 +36,26 @@ spec:
                   name: comet-secrets
                   key: ADMIN_DASHBOARD_PASSWORD
             - name: SCRAPE_DMM
-              value: live
+              value: both
             - name: DMM_INGEST_ENABLED
               value: "true"
             - name: DMM_INGEST_CONCURRENT_WORKERS
               value: "1"
             - name: DMM_INGEST_BATCH_SIZE
               value: "100"
+            - name: SCRAPE_PROWLARR
+              value: both
+            - name: PROWLARR_URL
+              value: http://prowlarr.prowlarr.svc.cluster.local:9696
+            - name: PROWLARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: comet-secrets
+                  key: PROWLARR_API_KEY
             - name: COMETNET_ENABLED
               value: "false"
             - name: BACKGROUND_SCRAPER_ENABLED
-              value: "false"
+              value: "true"
             - name: PROXY_DEBRID_STREAM
               value: "false"
             - name: FASTAPI_WORKERS

@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strikers
+  namespace: strikers
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: strikers
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: strikers
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ghcr-auth
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-seed
+          image: ghcr.io/jvz-devx/strikers-wasm:c923f79@sha256:33e5ebf05358548a816d742e43b6b594fef3361dc6d894ba1612fa75646b94a8
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              until test -f /data/.seed-complete && test -s /data/metadata.sqlite3; do
+                sleep 2
+              done
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: strikers
+          image: ghcr.io/jvz-devx/strikers-wasm:c923f79@sha256:33e5ebf05358548a816d742e43b6b594fef3361dc6d894ba1612fa75646b94a8
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: STRIKERS_DATA_DIR
+              value: /data
+            - name: STRIKERS_BIND
+              value: 0.0.0.0:7878
+            - name: STRIKERS_PUBLIC_ORIGIN
+              value: https://strikers.jensvanzutphen.com
+            - name: STRIKERS_ISO_PATH
+              value: /games/strikers.iso
+          ports:
+            - name: http
+              containerPort: 7878
+          startupProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 5
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: data
+              mountPath: /games
+              subPath: source
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: strikers-data

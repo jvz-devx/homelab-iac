@@ -32,7 +32,7 @@ spec:
           command: [/bin/sh, -ec]
           args:
             - |
-              until test -f /data/.seed-complete && test -s /data/metadata.sqlite3; do
+              until test -f /data/.seed-complete && test -s /data/strikers/metadata.sqlite3; do
                 sleep 2
               done
           securityContext:
@@ -56,7 +56,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: STRIKERS_DATA_DIR
-              value: /data
+              value: /data/strikers
             - name: STRIKERS_BIND
               value: 0.0.0.0:7878
             - name: STRIKERS_PUBLIC_ORIGIN
@@ -99,7 +99,7 @@ spec:
               mountPath: /data
             - name: data
               mountPath: /games
-              subPath: source
+              subPath: strikers/source
               readOnly: true
       volumes:
         - name: data

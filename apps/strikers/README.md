@@ -10,8 +10,10 @@ One replica owns `strikers-data`. `Recreate` and the application's exclusive dat
 lock prevent concurrent SQLite/save writers. The PVC and namespace have pruning
 disabled so removing the app manifest does not silently erase progression.
 
-The PVC contains the administrator database, lobby saves, installed content and
-`source/strikers.iso`. That source directory is mounted at `/games` read-only.
+The PVC's `strikers/` directory contains the administrator database, lobby saves,
+installed content and `source/strikers.iso`. The application owns this subdirectory
+as UID 10001; it does not need to chmod the root-owned volume mount. Its source
+directory is mounted at `/games` read-only.
 `STRIKERS_ISO_PATH=/games/strikers.iso` automatically installs a configured image
 on a fresh data directory and reuses an existing valid installation on restart.
 The original image is not exposed by the asset API.

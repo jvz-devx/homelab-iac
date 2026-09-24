@@ -123,6 +123,11 @@ spec:
                 secretKeyRef:
                   name: klavier-secrets
                   key: BETTER_AUTH_SECRET
+            - name: INTERNAL_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: INTERNAL_API_SECRET
             - name: JOB_SECRET
               valueFrom:
                 secretKeyRef:

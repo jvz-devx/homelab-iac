@@ -53,6 +53,15 @@ spec:
                 secretKeyRef:
                   name: klavier-secrets
                   key: BETTER_AUTH_SECRET
+            # Battle results and reference notes go through the app's signed
+            # internal API (in-cluster; not via the public ingress).
+            - name: APP_INTERNAL_URL
+              value: http://app:3000
+            - name: INTERNAL_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: INTERNAL_API_SECRET
           ports:
             - name: http
               containerPort: 3001

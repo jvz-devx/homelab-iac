@@ -20,14 +20,7 @@ portable bases and cluster overlays.
 
 ## Cross-Cluster Services
 
-Hetzner consumes homelab CLIProxyAPI through the Tailscale Kubernetes Operator:
-
-```text
-cliproxyapi.remote-homelab.svc.cluster.local:8317
-  -> ts-cliproxyapi-*.tailscale.svc.cluster.local
-  -> cliproxyapi-homelab.zebu-dorian.ts.net
-```
-
-Do not restore the old `EndpointSlice` that pointed at the homelab pod IP
-`10.42.0.31`; pod IPs change on restart. Use operator-managed egress Services
-for stable shared app traffic.
+Hetzner currently consumes no homelab app services; CLIProxyAPI was removed.
+Cross-cluster app traffic goes through the Tailscale Kubernetes Operator. Don't
+point an `EndpointSlice` at a homelab pod IP, because pod IPs change on restart.
+Use operator-managed egress Services for stable shared app traffic.

@@ -32,18 +32,3 @@ ports:
 endpoints:
   - addresses:
       - 100.82.208.49
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: cliproxyapi
-  namespace: remote-homelab
-  annotations:
-    tailscale.com/tailnet-fqdn: cliproxyapi-homelab.zebu-dorian.ts.net
-spec:
-  type: ExternalName
-  externalName: placeholder
-  ports:
-    - name: http
-      port: 8317
-      protocol: TCP

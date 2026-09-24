@@ -133,13 +133,12 @@ Two Tailscale layers are intentionally used:
   Homelab advertises `10.42.0.0/16` and `10.43.0.0/16`; Hetzner advertises
   `10.52.0.0/16` and `10.53.0.0/16`. Hetzner is also an exit node.
 - The Tailscale Kubernetes Operator runs in both clusters for stable
-  cross-cluster Services. CLIProxyAPI is exposed from homelab as
-  `cliproxyapi-homelab.zebu-dorian.ts.net` and consumed in Hetzner as
-  `cliproxyapi.remote-homelab.svc.cluster.local`.
+  cross-cluster Services. No app services are shared right now; CLIProxyAPI
+  was removed.
 
-Do not reintroduce pod-IP EndpointSlices for CLIProxyAPI. The previous
-`10.42.0.31` target was deliberately replaced because it broke on pod restart.
-Use operator-managed egress Services for new stable cross-cluster app traffic.
+Do not point one cluster at the other's pod IPs with EndpointSlices; pod IPs
+change on restart. Use operator-managed egress Services for new stable
+cross-cluster app traffic.
 Keep raw selectorless EndpointSlices only for explicit low-level stubs such as
 Kubernetes API tests.
 

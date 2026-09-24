@@ -30,9 +30,8 @@ Cross-cluster routing uses two Tailscale layers:
 - the Tailscale Kubernetes Operator in both clusters for stable service-level
   access where pod IPs or ClusterIPs would be brittle
 
-CLIProxyAPI is the first operator-managed shared service. Homelab exposes it as
-`cliproxyapi-homelab.zebu-dorian.ts.net`; Hetzner consumes it at
-`cliproxyapi.remote-homelab.svc.cluster.local`. See
+No operator-managed shared app services are active right now (CLIProxyAPI, the
+first one, was removed). See
 `docs/tailscale-routing.md` for policy requirements, rollout steps, and
 verification commands. Do not rely on Kubernetes node joining across the public
 internet.

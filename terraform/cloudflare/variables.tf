@@ -33,9 +33,3 @@ variable "tunetap_zone_id" {
   type        = string
   default     = "7eb0d762118d7a18c36ccf6cbda62c57"
 }
-
-variable "cliproxyapi_tailnet_ipv4" {
-  description = "Tailscale IPv4 for the homelab CLIProxyAPI service proxy."
-  type        = string
-  default     = "100.71.48.37"
-}

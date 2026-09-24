@@ -249,7 +249,7 @@ This is the active backend for `chat.jensvanzutphen.com`.
 - Data was migrated from homelab Open WebUI as a full tar archive of `/app/backend/data`, including `webui.db`, WAL files, uploads, vector DB, and model cache.
 - Homelab keeps its old `openwebui-data` PVC as a fallback copy, but its Open WebUI Deployment is scaled to `0`.
 - Homelab `openwebui` Service is now a Tailscale ExternalName to `openwebui-hetzner.zebu-dorian.ts.net`, so the existing `chat.jensvanzutphen.com` Ingress, TLS secret, DNS, and OAuth redirect URI are unchanged.
-- Chat and image generation still use CLIProxyAPI through `cliproxyapi.remote-homelab.svc.cluster.local:8317`.
+- Chat and image generation used CLIProxyAPI through `cliproxyapi.remote-homelab.svc.cluster.local:8317`. CLIProxyAPI has been removed, and Open WebUI is disabled in `apps/hetzner/kustomization.yaml`.
 
 ### `apps/hetzner/prowlarr`
 

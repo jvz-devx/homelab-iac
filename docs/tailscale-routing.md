@@ -60,18 +60,15 @@ were exposed in chat during initial setup.
 
 ## Operator-Managed Services
 
-CLIProxyAPI is exposed from homelab and consumed from Hetzner through the
-Tailscale Kubernetes Operator:
+No app services are shared between the clusters right now. CLIProxyAPI used to
+be exposed from homelab (`apps/cliproxyapi/service.yaml`, Tailscale hostname
+`cliproxyapi-homelab`) and imported in Hetzner through an ExternalName stub in
+`infrastructure/hetzner/configs/remote-homelab-stubs.yaml`; both were removed.
 
-| Direction | Kubernetes object | Tailnet target |
-|---|---|---|
-| Homelab export | `apps/cliproxyapi/service.yaml` | `cliproxyapi-homelab.zebu-dorian.ts.net` |
-| Hetzner import | `infrastructure/hetzner/configs/remote-homelab-stubs.yaml` | `cliproxyapi.remote-homelab.svc.cluster.local` |
-
-Do not point Hetzner at a homelab CLIProxyAPI pod IP. The previous manual
-EndpointSlice target `10.42.0.31` was removed because it changed on pod
-restart. For stable app traffic, prefer an operator-managed ExternalName
-Service with `tailscale.com/tailnet-fqdn` or `tailscale.com/tailnet-ip`.
+For a new shared service, export it with a Tailscale-annotated Service in the
+source cluster and import it with an operator-managed ExternalName Service
+(`tailscale.com/tailnet-fqdn` or `tailscale.com/tailnet-ip`) in the other.
+Don't point one cluster at the other's pod IPs, because they change on restart.
 
 The remaining selectorless EndpointSlice stubs are explicit low-level test
 stubs, such as Kubernetes API reachability. Keep those separate from app
@@ -107,13 +104,9 @@ ansible -i inventory/hosts.yml k3s_cluster -m shell -a 'tailscale ping -c 3 hetz
 ansible -i inventory/hetzner.yml hetzner_k3s_cluster -m shell -a 'tailscale ping -c 3 homelab-k3s'
 ```
 
-Operator service checks:
+Operator service checks, for any shared Service you add later:
 
 ```bash
-kubectl -n cliproxyapi get svc cliproxyapi -o yaml | yq '.status'
-KUBECONFIG=kubeconfig-hetzner kubectl -n remote-homelab get svc cliproxyapi -o yaml | yq '.spec, .status'
-KUBECONFIG=kubeconfig-hetzner kubectl run remote-cliproxyapi-test --rm -i --restart=Never --image=curlimages/curl:8.11.1 -- sh -c 'curl -i --max-time 20 http://cliproxyapi.remote-homelab.svc.cluster.local:8317/v1/models | head -30'
+kubectl -n <namespace> get svc <service> -o yaml | yq '.status'
+KUBECONFIG=kubeconfig-hetzner kubectl -n remote-homelab get svc <service> -o yaml | yq '.spec, .status'
 ```
-
-The expected unauthenticated response is `HTTP/1.1 401 Unauthorized` with
-`{"error":"Missing API key"}`. That proves routing reached CLIProxyAPI.

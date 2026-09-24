@@ -27,7 +27,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: ws-server
-          image: ghcr.io/jvz-devx/klavier.io/ws-server:latest@sha256:ffc1843874e1e6875ae2c5b8979c9f996dd98513112d1736c7a09c739916fa71 # {"$imagepolicy": "flux-system:klavier-ws-server"}
+          image: ghcr.io/jvz-devx/klavier.io/ws-server:latest@sha256:b2935d952afca5ebfbec94327972d5c6ad0154647158471616b8f35d341d6471 # {"$imagepolicy": "flux-system:klavier-ws-server"}
           imagePullPolicy: IfNotPresent
           env:
             - name: PORT

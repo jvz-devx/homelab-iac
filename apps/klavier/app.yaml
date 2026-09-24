@@ -52,7 +52,7 @@ spec:
               cpu: 100m
               memory: 64Mi
         - name: migrate
-          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:3e9281dc91cb76f58055dd62bb5a9e5af0411325f6fbedd7154df05fcc0d4412 # {"$imagepolicy": "flux-system:klavier-app"}
+          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:e03fec2e512be41f3bcab9efb0aae6a2d6575f356c0763d0b81bc2aadc850303 # {"$imagepolicy": "flux-system:klavier-app"}
           imagePullPolicy: IfNotPresent
           command: [node, scripts/migrate.mjs]
           env:
@@ -80,7 +80,7 @@ spec:
               mountPath: /tmp
       containers:
         - name: app
-          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:3e9281dc91cb76f58055dd62bb5a9e5af0411325f6fbedd7154df05fcc0d4412 # {"$imagepolicy": "flux-system:klavier-app"}
+          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:e03fec2e512be41f3bcab9efb0aae6a2d6575f356c0763d0b81bc2aadc850303 # {"$imagepolicy": "flux-system:klavier-app"}
           imagePullPolicy: IfNotPresent
           env:
             - name: HOST
@@ -101,6 +101,9 @@ spec:
             # 8 tracks of 5 MB note JSON plus serialization overhead.
             - name: BODY_SIZE_LIMIT
               value: 64M
+            # Drain requests and jobs before the 30 s termination grace period ends.
+            - name: SHUTDOWN_TIMEOUT
+              value: "20"
             - name: R2_BUCKET_NAME
               value: klavier-recordings-prod
             - name: R2_ENDPOINT
@@ -138,32 +141,22 @@ spec:
           ports:
             - name: http
               containerPort: 3000
-          # The rate-limit hook calls getClientAddress(), which fails when
-          # ADDRESS_HEADER is missing, so probes send it too.
+          # /api/health skips auth, sessions and rate limiting; it pings Postgres.
           startupProbe:
             httpGet:
               path: /api/health
               port: http
-              httpHeaders:
-                - name: CF-Connecting-IP
-                  value: 127.0.0.1
             periodSeconds: 5
             failureThreshold: 24
           readinessProbe:
             httpGet:
               path: /api/health
               port: http
-              httpHeaders:
-                - name: CF-Connecting-IP
-                  value: 127.0.0.1
             periodSeconds: 10
+          # TCP liveness: a database outage makes the pod unready, not restart.
           livenessProbe:
-            httpGet:
-              path: /api/health
+            tcpSocket:
               port: http
-              httpHeaders:
-                - name: CF-Connecting-IP
-                  value: 127.0.0.1
             periodSeconds: 20
             timeoutSeconds: 5
           lifecycle:

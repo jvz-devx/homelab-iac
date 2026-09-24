@@ -52,7 +52,7 @@ spec:
               cpu: 100m
               memory: 64Mi
         - name: migrate
-          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:edd1ed78cac560c03870c140e7cec1bc98ecec930a8c1fda2fba3605f7787a20 # {"$imagepolicy": "flux-system:klavier-app"}
+          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:0b2db71f59f80103a82bb999f6db0950685b23e0667360532940800a7714395d # {"$imagepolicy": "flux-system:klavier-app"}
           imagePullPolicy: IfNotPresent
           command: [node, scripts/migrate.mjs]
           env:
@@ -80,7 +80,7 @@ spec:
               mountPath: /tmp
       containers:
         - name: app
-          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:edd1ed78cac560c03870c140e7cec1bc98ecec930a8c1fda2fba3605f7787a20 # {"$imagepolicy": "flux-system:klavier-app"}
+          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:0b2db71f59f80103a82bb999f6db0950685b23e0667360532940800a7714395d # {"$imagepolicy": "flux-system:klavier-app"}
           imagePullPolicy: IfNotPresent
           env:
             - name: HOST

@@ -14,8 +14,10 @@ spec:
       http:
         paths:
           # The client opens ${PUBLIC_WS_URL}/ws; Traefik forwards the Upgrade natively.
+          # Prefix, not Exact: Traefik ranks rules by length, and Path(`/ws`) is
+          # shorter than the catch-all PathPrefix(`/`), so an Exact rule never wins.
           - path: /ws
-            pathType: Exact
+            pathType: Prefix
             backend:
               service:
                 name: ws-server

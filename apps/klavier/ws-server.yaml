@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ws-server
+  namespace: klavier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ws-server
+      app.kubernetes.io/part-of: klavier
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ws-server
+        app.kubernetes.io/part-of: klavier
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ghcr-auth
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ws-server
+          image: ghcr.io/jvz-devx/klavier.io/ws-server:latest@sha256:ffc1843874e1e6875ae2c5b8979c9f996dd98513112d1736c7a09c739916fa71 # {"$imagepolicy": "flux-system:klavier-ws-server"}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PORT
+              value: "3001"
+            - name: LOG_LEVEL
+              value: info
+            # Empty denies every WebSocket upgrade.
+            - name: ALLOWED_ORIGINS
+              value: https://klavier.jensvanzutphen.com
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: REDIS_URL
+            # Must equal the app's: it verifies the app-issued WebSocket tokens.
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: BETTER_AUTH_SECRET
+          ports:
+            - name: http
+              containerPort: 3001
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ws-server
+  namespace: klavier
+spec:
+  selector:
+    app.kubernetes.io/name: ws-server
+    app.kubernetes.io/part-of: klavier
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http

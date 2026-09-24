@@ -1,0 +1,204 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: klavier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: app
+      app.kubernetes.io/part-of: klavier
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: app
+        app.kubernetes.io/part-of: klavier
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ghcr-auth
+      terminationGracePeriodSeconds: 30
+      # UID/GID 1000 is the node user in node:22-slim.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              until pg_isready -h postgres -p 5432 -U klavier -d klavier; do
+                sleep 2
+              done
+          securityContext:
+            runAsUser: 70
+            runAsGroup: 70
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+        - name: migrate
+          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:3e9281dc91cb76f58055dd62bb5a9e5af0411325f6fbedd7154df05fcc0d4412 # {"$imagepolicy": "flux-system:klavier-app"}
+          imagePullPolicy: IfNotPresent
+          command: [node, scripts/migrate.mjs]
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: DATABASE_URL
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      containers:
+        - name: app
+          image: ghcr.io/jvz-devx/klavier.io/app:latest@sha256:3e9281dc91cb76f58055dd62bb5a9e5af0411325f6fbedd7154df05fcc0d4412 # {"$imagepolicy": "flux-system:klavier-app"}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: HOST
+              value: 0.0.0.0
+            - name: PORT
+              value: "3000"
+            - name: NODE_ENV
+              value: production
+            - name: ORIGIN
+              value: https://klavier.jensvanzutphen.com
+            - name: PUBLIC_WS_URL
+              value: wss://klavier.jensvanzutphen.com
+            # Traefik replaces X-Forwarded-For with the cloudflared host IP, so
+            # the real client IP for rate limiting comes from Cloudflare.
+            - name: ADDRESS_HEADER
+              value: CF-Connecting-IP
+            # Recording drafts are sent as one remote-function POST: up to
+            # 8 tracks of 5 MB note JSON plus serialization overhead.
+            - name: BODY_SIZE_LIMIT
+              value: 64M
+            - name: R2_BUCKET_NAME
+              value: klavier-recordings-prod
+            - name: R2_ENDPOINT
+              value: https://2014abcab19669d48bfb71bea759c299.r2.cloudflarestorage.com
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: REDIS_URL
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: BETTER_AUTH_SECRET
+            - name: JOB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-secrets
+                  key: JOB_SECRET
+            - name: R2_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-r2
+                  key: R2_ACCESS_KEY_ID
+            - name: R2_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: klavier-r2
+                  key: R2_SECRET_ACCESS_KEY
+          ports:
+            - name: http
+              containerPort: 3000
+          # The rate-limit hook calls getClientAddress(), which fails when
+          # ADDRESS_HEADER is missing, so probes send it too.
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+              httpHeaders:
+                - name: CF-Connecting-IP
+                  value: 127.0.0.1
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+              httpHeaders:
+                - name: CF-Connecting-IP
+                  value: 127.0.0.1
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+              httpHeaders:
+                - name: CF-Connecting-IP
+                  value: 127.0.0.1
+            periodSeconds: 20
+            timeoutSeconds: 5
+          lifecycle:
+            preStop:
+              exec:
+                command: [sleep, "5"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: klavier
+spec:
+  selector:
+    app.kubernetes.io/name: app
+    app.kubernetes.io/part-of: klavier
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

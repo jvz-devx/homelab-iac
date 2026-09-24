@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: klavier
+  namespace: klavier
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+    external-dns.alpha.kubernetes.io/target: f4f59044-cc55-41f0-a76a-96fdfeb42dc9.cfargotunnel.com
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: klavier.jensvanzutphen.com
+      http:
+        paths:
+          # The client opens ${PUBLIC_WS_URL}/ws; Traefik forwards the Upgrade natively.
+          - path: /ws
+            pathType: Exact
+            backend:
+              service:
+                name: ws-server
+                port:
+                  number: 3001
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - klavier.jensvanzutphen.com
+      secretName: klavier-tls

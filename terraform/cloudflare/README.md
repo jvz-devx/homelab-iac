@@ -34,6 +34,8 @@ tofu -chdir=terraform/cloudflare apply
   - `aiostreams.tunetap.xyz -> http://aiostreams.aiostreams.svc.cluster.local:3000`
 - Private Tailscale-only DNS:
   - `chat-api.jensvanzutphen.com -> 100.71.48.37`
+- Public unproxied DNS:
+  - `strikers-wt.jensvanzutphen.com -> 91.98.43.250` (Strikers WebTransport UDP relay on Hetzner)
 
 `chat-api.jensvanzutphen.com` is deliberately unproxied. It resolves to a
 Tailscale CGNAT address, so it only works from devices connected to the tailnet.

@@ -171,14 +171,21 @@ resource "cloudflare_dns_record" "nzbdav_jensvanzutphen" {
   comment = "NZBDav on Hetzner via dedicated Cloudflare Tunnel."
 }
 
-import {
-  to = cloudflare_zero_trust_tunnel_cloudflared_config.homelab
-  id = "2014abcab19669d48bfb71bea759c299/f4f59044-cc55-41f0-a76a-96fdfeb42dc9"
+resource "cloudflare_dns_record" "strikers_wt_jensvanzutphen" {
+  provider = cloudflare.dns
+
+  zone_id = var.jensvanzutphen_zone_id
+  name    = "strikers-wt"
+  content = "91.98.43.250"
+  type    = "A"
+  ttl     = 1
+  proxied = false
+  comment = "Strikers WebTransport UDP relay on Hetzner; unproxied because QUIC needs a direct path."
 }
 
 import {
-  to = cloudflare_dns_record.chat_api_tailnet
-  id = "9c95c564e5855e0e653867092d5723a4/dc290f374efb2069a3ef1c26f4db39a8"
+  to = cloudflare_zero_trust_tunnel_cloudflared_config.homelab
+  id = "2014abcab19669d48bfb71bea759c299/f4f59044-cc55-41f0-a76a-96fdfeb42dc9"
 }
 
 import {

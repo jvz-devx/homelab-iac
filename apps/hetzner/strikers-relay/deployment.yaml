@@ -1,0 +1,61 @@
+---
+# Public UDP entry for Strikers WebTransport (see apps/strikers/README.md).
+# Browsers send QUIC to 91.98.43.250:4433 (hcloud firewall rule "strikers
+# WebTransport relay"); this forwards each browser's datagrams over Tailscale
+# to strikers-wt-homelab, the operator proxy for the homelab Service
+# strikers/strikers-webtransport. It never decrypts anything: TLS ends in the
+# homelab strikers pod. Host networking lets it bind the public port and reach
+# the tailnet through the node's own Tailscale.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strikers-relay
+  namespace: strikers-relay
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: strikers-relay
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: strikers-relay
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      imagePullSecrets:
+        - name: ghcr-auth
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: relay
+          image: ghcr.io/jvz-devx/strikers-wasm:a7b0c47@sha256:e01109bc808514f529b5e7a06a4f428782c301e01ceb7f598180d2ed68956812
+          imagePullPolicy: IfNotPresent
+          # The upstream is the tailnet IP of strikers-wt-homelab; it changes only
+          # if the homelab Service (and its operator state) is recreated.
+          args: [--udp-relay, "0.0.0.0:4433", "100.94.53.122:4433"]
+          ports:
+            - name: webtransport
+              containerPort: 4433
+              hostPort: 4433
+              protocol: UDP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi

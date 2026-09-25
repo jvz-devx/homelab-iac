@@ -36,6 +36,15 @@ resource "hcloud_firewall" "k3s" {
     source_ips = ["0.0.0.0/0", "::/0"]
   }
 
+  # Strikers WebTransport relay (apps/hetzner/strikers-relay).
+  rule {
+    direction   = "in"
+    protocol    = "udp"
+    port        = "4433"
+    source_ips  = ["0.0.0.0/0", "::/0"]
+    description = "strikers WebTransport relay"
+  }
+
   rule {
     direction  = "in"
     protocol   = "tcp"

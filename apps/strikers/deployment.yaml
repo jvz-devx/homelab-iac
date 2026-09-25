@@ -28,7 +28,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-seed
-          image: ghcr.io/jvz-devx/strikers-wasm:7c9ee3a@sha256:888b0dddbb74d58b04cdf3da664917e1433e2ddf8095a9f4c6c4510bcd390142
+          image: ghcr.io/jvz-devx/strikers-wasm:a7b0c47@sha256:e01109bc808514f529b5e7a06a4f428782c301e01ceb7f598180d2ed68956812
           command: [/bin/sh, -ec]
           args:
             - |
@@ -52,7 +52,7 @@ spec:
               mountPath: /data
       containers:
         - name: strikers
-          image: ghcr.io/jvz-devx/strikers-wasm:7c9ee3a@sha256:888b0dddbb74d58b04cdf3da664917e1433e2ddf8095a9f4c6c4510bcd390142
+          image: ghcr.io/jvz-devx/strikers-wasm:a7b0c47@sha256:e01109bc808514f529b5e7a06a4f428782c301e01ceb7f598180d2ed68956812
           imagePullPolicy: IfNotPresent
           env:
             - name: STRIKERS_DATA_DIR
@@ -63,9 +63,20 @@ spec:
               value: https://strikers.jensvanzutphen.com
             - name: STRIKERS_ISO_PATH
               value: /games/strikers.iso
+            # WebTransport datagrams for game frames. Browsers reach the public
+            # UDP relay on Hetzner (apps/hetzner/strikers-relay), which forwards
+            # over Tailscale to the strikers-webtransport Service below. TLS ends
+            # here with a self-signed certificate announced over the WebSocket.
+            - name: STRIKERS_WEBTRANSPORT_BIND
+              value: 0.0.0.0:4433
+            - name: STRIKERS_WEBTRANSPORT_URL
+              value: https://91.98.43.250:4433/wt
           ports:
             - name: http
               containerPort: 7878
+            - name: webtransport
+              containerPort: 4433
+              protocol: UDP
           startupProbe:
             httpGet:
               path: /api/status

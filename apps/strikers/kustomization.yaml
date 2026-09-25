@@ -6,4 +6,5 @@ resources:
   - pvc.yaml
   - deployment.yaml
   - service.yaml
+  - webtransport-service.yaml
   - ingress.yaml

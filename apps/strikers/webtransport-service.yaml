@@ -1,0 +1,21 @@
+# WebTransport (QUIC over UDP) for game frames, exposed only on the tailnet.
+# The Tailscale operator gives it the device strikers-wt-homelab; the Hetzner
+# UDP relay (apps/hetzner/strikers-relay) forwards public UDP 4433 to that
+# device's tailnet IP. Recreating this Service can change that IP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: strikers-webtransport
+  namespace: strikers
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: strikers-wt-homelab
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: strikers
+  ports:
+    - name: webtransport
+      port: 4433
+      targetPort: webtransport
+      protocol: UDP

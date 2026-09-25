@@ -35,3 +35,23 @@ forwarding. Use the HTTPS origin exactly as configured.
 Large initial uploads should use the private connection, not the Cloudflare HTTP
 upload path. Administrator authentication and invitations still protect content;
 there is no public registration or downloadable original disc endpoint.
+
+## WebTransport relay
+
+Game frames can travel as WebTransport datagrams (UDP/QUIC) next to the
+WebSocket; see `docs/webtransport.md` in the application repository. Cloudflare
+Tunnel carries no UDP, so browsers connect to `https://91.98.43.250:4433/wt`,
+the Hetzner node's public address:
+
+```text
+browser -> Hetzner UDP 4433 (hcloud firewall 10908357)
+        -> strikers-relay pod, hostNetwork, `strikers-server --udp-relay`
+        -> Tailscale: strikers-wt-homelab (operator proxy for strikers-webtransport)
+        -> strikers pod UDP 4433
+```
+
+The relay only moves UDP packets; TLS ends in the strikers pod with a
+self-signed certificate whose hash the browser receives over the WebSocket, so
+there is no certificate to manage. If WebTransport fails, browsers keep using
+the WebSocket. To turn the path off, remove `strikers-relay` from
+`apps/hetzner/kustomization.yaml` or unset `STRIKERS_WEBTRANSPORT_BIND`.

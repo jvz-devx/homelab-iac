@@ -66,16 +66,26 @@ spec:
                               else .
                               end
                             )
+                          # Several rules per admin port (e.g. a stale extra
+                          # source IP) collapse into identical rules after the
+                          # rewrite, and set_rules rejects duplicates with 422.
+                          | reduce .[] as $rule ([];
+                              if index([$rule]) then . else . + [$rule] end)
                         '
                   )"
 
-                  jq -n --argjson rules "$rules" '{rules: $rules}' |
-                    curl -fsS --retry 3 \
-                      -X POST \
-                      -H "$auth_header" \
-                      -H "Content-Type: application/json" \
-                      -d @- \
-                      "$firewall_url/actions/set_rules" >/dev/null
+                  if ! response="$(
+                    jq -n --argjson rules "$rules" '{rules: $rules}' |
+                      curl -sS --fail-with-body --retry 3 \
+                        -X POST \
+                        -H "$auth_header" \
+                        -H "Content-Type: application/json" \
+                        -d @- \
+                        "$firewall_url/actions/set_rules"
+                  )"; then
+                    echo "set_rules failed: $response" >&2
+                    exit 1
+                  fi
 
                   echo "Updated Hetzner firewall $FIREWALL_ID admin source IPs for ports $ADMIN_PORTS to $cidr"
               resources:

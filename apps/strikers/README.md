@@ -40,8 +40,10 @@ there is no public registration or downloadable original disc endpoint.
 
 Game frames can travel as WebTransport datagrams (UDP/QUIC) next to the
 WebSocket; see `docs/webtransport.md` in the application repository. Cloudflare
-Tunnel carries no UDP, so browsers connect to `https://91.98.43.250:4433/wt`,
-the Hetzner node's public address:
+Tunnel carries no UDP, so browsers connect to
+`https://strikers-wt.jensvanzutphen.com:4433/wt`, an unproxied Cloudflare A
+record (`terraform/cloudflare`) for the Hetzner node's public address
+91.98.43.250:
 
 ```text
 browser -> Hetzner UDP 4433 (hcloud firewall 10908357)

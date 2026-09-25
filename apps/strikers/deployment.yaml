@@ -70,7 +70,7 @@ spec:
             - name: STRIKERS_WEBTRANSPORT_BIND
               value: 0.0.0.0:4433
             - name: STRIKERS_WEBTRANSPORT_URL
-              value: https://91.98.43.250:4433/wt
+              value: https://strikers-wt.jensvanzutphen.com:4433/wt
           ports:
             - name: http
               containerPort: 7878

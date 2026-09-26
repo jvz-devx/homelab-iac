@@ -1,0 +1,9 @@
+# Managed by Ansible (roles/k3s_agent).
+[Unit]
+Description=Restart k3s-agent when the kubelet's watches are broken
+After=k3s-agent.service
+Requisite=k3s-agent.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/k3s-agent-watchdog

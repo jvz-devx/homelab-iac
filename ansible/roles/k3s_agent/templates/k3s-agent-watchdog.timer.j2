@@ -1,0 +1,10 @@
+# Managed by Ansible (roles/k3s_agent).
+[Unit]
+Description=Check the kubelet's watches every 3 minutes
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=3min
+
+[Install]
+WantedBy=timers.target

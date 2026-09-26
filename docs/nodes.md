@@ -139,7 +139,14 @@ This is now automatic (roles/k3s_server, `ansible-playbook site.yml --tags k3s-h
   provisioner; an image policy the update automation hasn't seen for 15 minutes
   restarts the Flux image controllers. Each has a cooldown.
 
-Logs: `journalctl -u k3s-heal -u k3s-watchdog`. Run it by hand with
+- `k3s-agent-watchdog.timer` (roles/k3s_agent, `ansible-playbook k3s-worker.yml --tags k3s-heal`)
+  runs on every worker every 3 minutes. The same outage left k3s-worker-1's kubelet with
+  broken configmap watches, so new pods there hung in ContainerCreating ("failed to sync
+  configmap cache"). Five such errors within 5 minutes restart k3s-agent (containers keep
+  running), at most once per 20 minutes.
+
+Logs: `journalctl -u k3s-heal -u k3s-watchdog` on k3s-node, `journalctl -u k3s-agent-watchdog`
+on workers. Run it by hand with
 `k3s-heal post-start` or `k3s-heal restart namespace/deployment`.
 
 Checking etcd:

@@ -1,0 +1,26 @@
+#!/bin/sh
+# Managed by Ansible (roles/k3s_agent). Runs every 3 minutes (k3s-agent-watchdog.timer).
+#
+# After the API server has been away (k3s server restart, etcd migration), the kubelet can keep
+# broken configmap/secret watches and fail to start new pods on this node with "failed to sync
+# configmap cache". Restarting k3s-agent re-creates the watches; running containers keep going.
+set -eu
+
+STATE=/var/lib/k3s-agent-watchdog
+mkdir -p "$STATE"
+now=$(date +%s)
+threshold=5
+cooldown=1200
+
+failures=$(journalctl -u k3s-agent --since "-5min" --no-pager -o cat 2>/dev/null |
+	grep -cE "failed to sync (configmap|secret) cache" || true)
+[ "$failures" -ge "$threshold" ] || exit 0
+
+if [ -f "$STATE/restarted" ] && [ $((now - $(cat "$STATE/restarted"))) -lt "$cooldown" ]; then
+	echo "k3s-agent-watchdog: $failures cache sync failures in 5 minutes, restarted recently"
+	exit 0
+fi
+
+echo "k3s-agent-watchdog: $failures cache sync failures in 5 minutes; restarting k3s-agent"
+echo "$now" >"$STATE/restarted"
+systemctl restart k3s-agent

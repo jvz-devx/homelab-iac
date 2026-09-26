@@ -5,9 +5,9 @@ Fully declarative homelab infrastructure. One command from bare metal to GitOps.
 ## Architecture
 
 ```
-Proxmox (192.168.1.202)
-└── LXC 101 (192.168.1.100) — privileged, Ubuntu 24.04
-    └── k3s v1.31.4
+Proxmox node2 (192.168.1.202, N100)
+└── LXC 101 k3s-node (192.168.1.100) — privileged, Ubuntu 24.04
+    └── k3s v1.31.4 server (+ priority 1 apps)
         ├── Cilium       (CNI)
         ├── MetalLB      (LoadBalancer, 192.168.1.110–120)
         ├── Traefik      (Ingress)
@@ -16,7 +16,15 @@ Proxmox (192.168.1.202)
         ├── cloudflared  (Tunnel → jensvanzutphen.com)
         ├── Tailscale    (cross-cluster service access)
         └── NAS storage  (rclone FTP → 192.168.1.1)
+
+Proxmox node1 (192.168.1.201, i5-10400T)
+└── LXC 102 k3s-worker-1 (192.168.1.101) — privileged, Ubuntu 24.04
+    └── k3s v1.31.4 agent (priority 2 apps)
 ```
+
+Which app runs on which node, how to add a worker (`ansible/k3s-worker.yml`)
+and how to move a `local-path` volume between nodes
+(`scripts/move-local-pv.sh`): [`docs/nodes.md`](docs/nodes.md).
 
 All k3s built-ins (traefik, servicelb, flannel) are disabled and replaced with declarative Flux-managed HelmReleases.
 

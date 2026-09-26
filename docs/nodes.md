@@ -106,18 +106,29 @@ What fed it (about 2.1 writes/s over 40 h):
   purpose for fast deploys): the most bytes, 2-3 KB status patches.
 - node, apiserver and cert-manager leases.
 
-Still to do: clear the backlog. Either restart k3s with `--cluster-init`
-(k3s migrates SQLite to embedded etcd, which compacts and defragments
-properly) or compact and vacuum `state.db` offline, as was done in June 2026
-(12.8 GB before). Both need a k3s restart, so every app on the cluster goes
-down for a few minutes. `server/db/etcd/` holds only a 17-byte `name` file from
-February 2026; it is not an etcd data directory.
+Fixed on 2026-09-26: k3s now runs with `--cluster-init`
+(`ansible/group_vars/all.yml`), so the datastore is embedded etcd. On the
+first start k3s migrated the live data out of SQLite in seconds: etcd's
+database is 26 MB (132 MB with its WAL) against 5.4 GB before, `k3s-server`
+dropped from 230-300% CPU to near idle, and Flux reconciles no longer time
+out. The node now also has the `etcd` role.
 
-Checking the datastore (read-only):
+Left behind in `/var/lib/rancher/k3s/server/db/` on `k3s-node`:
+`state.db.migrated` (the old SQLite database, 5.4 GB) and
+`state.db.backup-before-vacuum-20260625092836` (12.8 GB). A copy of the
+pre-migration `db/` directory and the server token is on node2 in
+`/root/k3s-datastore-backup-20260926/`. Delete them once the cluster has
+run well for a while.
+
+Rolling back to SQLite: stop k3s, remove `--cluster-init` from the flags,
+move `db/etcd` aside and restore `state.db` (from `state.db.migrated` or the
+node2 backup), then start k3s.
+
+Checking etcd:
 
 ```bash
-ssh root@192.168.1.100 "sqlite3 -readonly 'file:/var/lib/rancher/k3s/server/db/state.db?mode=ro' \
-  \"select max(id) from kine; select prev_revision from kine where name='compact_rev_key' order by id desc limit 1;\""
+ssh root@192.168.1.100 'du -sh /var/lib/rancher/k3s/server/db/etcd; ls /var/lib/rancher/k3s/server/db/snapshots'
+kubectl get --raw /metrics | grep -E "^apiserver_storage_(size_bytes|db_total_size)"
 ```
 
-The difference between the two numbers is the compaction lag.
+k3s takes etcd snapshots on its own schedule into `db/snapshots/`.

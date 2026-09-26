@@ -30,7 +30,12 @@ lxc_extra_conf:
 #   servicelb  → infrastructure/metallb/   (HelmRelease + L2 config)
 #   flannel    → infrastructure/cilium/    (HelmRelease)
 k3s_version: v1.31.4+k3s1
+# --cluster-init: embedded etcd instead of SQLite (kine). The SQLite datastore
+# grew to 5.4 GB with compaction 2.2M revisions behind and k3s-server using
+# most of the N100 (docs/nodes.md). On first start k3s migrates the SQLite
+# data into etcd; etcd compacts and defragments itself.
 k3s_install_flags: >-
+  --cluster-init
   --disable traefik
   --disable servicelb
   --disable-cloud-controller

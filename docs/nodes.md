@@ -121,6 +121,14 @@ copied to node2 at `/root/k3s-etcd-snapshots/`. Restoring one:
 `k3s server --cluster-reset --cluster-reset-restore-path=<snapshot>` with
 k3s stopped (see the k3s etcd-snapshot docs).
 
+After the migration: Traefik v3.3.4 lost its Kubernetes watches during the
+API server restart (log: "failed to list ... apiserver not ready" at 08:37
+UTC) and never re-established them, so it kept routing to pod IPs from before
+the restart. strikers went down with a 504 once its pod was replaced. Restarting
+Traefik (`kubectl -n traefik rollout restart deploy/traefik`) fixed it. After
+any k3s server restart, check that Traefik routes to current pod IPs, or just
+restart it.
+
 Checking etcd:
 
 ```bash

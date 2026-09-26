@@ -5,7 +5,7 @@ Proxmox machines, not a Proxmox cluster.
 
 | Node | Role | Where | Resources |
 |---|---|---|---|
-| `k3s-node` (192.168.1.100) | server (control plane, SQLite datastore) + workloads | LXC 101 on node2 (192.168.1.202, Intel N100) | 3 cores, 8 GB |
+| `k3s-node` (192.168.1.100) | server (control plane, embedded etcd) + workloads | LXC 101 on node2 (192.168.1.202, Intel N100) | 3 cores, 8 GB |
 | `k3s-worker-1` (192.168.1.101) | agent (workloads only) | LXC 102 on node1 (192.168.1.201, i5-10400T, also runs Home Assistant and hermes) | 6 cores, 12 GB, 64 GB disk |
 
 Both run k3s v1.31.4+k3s1, Cilium (VXLAN tunnel, kube-proxy replacement) and
@@ -91,7 +91,7 @@ klavier postgres-data (50 MB), boodschappen-data.
 
 ## The k3s datastore (why the worker was added)
 
-`k3s-node` runs k3s on the default SQLite datastore (kine). On 2026-09-26
+`k3s-node` ran k3s on the default SQLite datastore (kine). On 2026-09-26
 `state.db` was 5.4 GB for a few hundred objects: kine's compaction was 2.2M
 revisions behind (current 27.7M, compacted 25.55M) and not moving. Every list
 and watch scans that history, so `k3s-server` used 2.3-2.75 of the N100's 3

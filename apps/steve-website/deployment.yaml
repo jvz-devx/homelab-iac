@@ -28,6 +28,19 @@ spec:
               value: https://steve.jensvanzutphen.com
             - name: PORT
               value: "3000"
+            # Behind the Cloudflare Tunnel: the real client IP for sign-in rate limits.
+            - name: ADDRESS_HEADER
+              value: CF-Connecting-IP
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: steve-website-secrets
+                  key: DATABASE_URL
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: steve-website-secrets
+                  key: BETTER_AUTH_SECRET
           ports:
             - name: http
               containerPort: 3000

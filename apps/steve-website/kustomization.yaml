@@ -4,10 +4,14 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - ghcr-auth-secret.yaml
+  - secret.yaml
+  - pvc.yaml
+  - postgres.yaml
+  - networkpolicy.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml
-# Priority 1: runs on the N100 (k3s-node). See docs/nodes.md.
+# Priority 1: runs on the N100 (k3s-node), postgres and its volume too. See docs/nodes.md.
 patches:
   - target:
       kind: Deployment

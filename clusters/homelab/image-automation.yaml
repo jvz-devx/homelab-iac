@@ -1,60 +1,62 @@
----
-apiVersion: image.toolkit.fluxcd.io/v1
-kind: ImageRepository
-metadata:
-  name: termixkit
-  namespace: flux-system
-spec:
-  image: ghcr.io/jvz-devx/termixkit
-  interval: 1m0s
-  secretRef:
-    name: ghcr-auth
----
-apiVersion: image.toolkit.fluxcd.io/v1
-kind: ImagePolicy
-metadata:
-  name: termixkit
-  namespace: flux-system
-spec:
-  imageRepositoryRef:
-    name: termixkit
-  filterTags:
-    pattern: '^main$'
-  policy:
-    alphabetical:
-      order: asc
-  digestReflectionPolicy: Always
-  interval: 1m0s
----
-apiVersion: image.toolkit.fluxcd.io/v1
-kind: ImageUpdateAutomation
-metadata:
-  name: termixkit-image-digest
-  namespace: flux-system
-spec:
-  interval: 5m0s
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  git:
-    checkout:
-      ref:
-        branch: main
-    commit:
-      author:
-        name: fluxcdbot
-        email: fluxcdbot@users.noreply.github.com
-      messageTemplate: |
-        chore(images): update TermixKit image digest
-
-        {{ range .Changed.Changes -}}
-        - {{ .OldValue }} -> {{ .NewValue }}
-        {{ end -}}
-    push:
-      branch: main
-  update:
-    path: ./apps/termix
-    strategy: Setters
+# TermixKit is not deployed (termix is commented out in apps/kustomization.yaml), and its
+# image moved to ghcr.io/jvz-devx/termkit. Re-enable this block together with the app.
+# ---
+# apiVersion: image.toolkit.fluxcd.io/v1
+# kind: ImageRepository
+# metadata:
+#   name: termixkit
+#   namespace: flux-system
+# spec:
+#   image: ghcr.io/jvz-devx/termixkit
+#   interval: 1m0s
+#   secretRef:
+#     name: ghcr-auth
+# ---
+# apiVersion: image.toolkit.fluxcd.io/v1
+# kind: ImagePolicy
+# metadata:
+#   name: termixkit
+#   namespace: flux-system
+# spec:
+#   imageRepositoryRef:
+#     name: termixkit
+#   filterTags:
+#     pattern: '^main$'
+#   policy:
+#     alphabetical:
+#       order: asc
+#   digestReflectionPolicy: Always
+#   interval: 1m0s
+# ---
+# apiVersion: image.toolkit.fluxcd.io/v1
+# kind: ImageUpdateAutomation
+# metadata:
+#   name: termixkit-image-digest
+#   namespace: flux-system
+# spec:
+#   interval: 5m0s
+#   sourceRef:
+#     kind: GitRepository
+#     name: flux-system
+#   git:
+#     checkout:
+#       ref:
+#         branch: main
+#     commit:
+#       author:
+#         name: fluxcdbot
+#         email: fluxcdbot@users.noreply.github.com
+#       messageTemplate: |
+#         chore(images): update TermixKit image digest
+#
+#         {{ range .Changed.Changes -}}
+#         - {{ .OldValue }} -> {{ .NewValue }}
+#         {{ end -}}
+#     push:
+#       branch: main
+#   update:
+#     path: ./apps/termix
+#     strategy: Setters
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageRepository

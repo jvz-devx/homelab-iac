@@ -13,6 +13,7 @@ spec:
       labels:
         app.kubernetes.io/name: steve-website
     spec:
+      terminationGracePeriodSeconds: 30
       imagePullSecrets:
         - name: ghcr-auth
       containers:
@@ -51,14 +52,20 @@ spec:
             httpGet:
               path: /
               port: http
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 3
+            periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /
               port: http
             initialDelaySeconds: 30
             periodSeconds: 20
+          # Give Traefik time to drop this pod from its endpoints before the process
+          # stops, so a rollout never answers requests with a 502.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
           resources:
             requests:
               cpu: 10m

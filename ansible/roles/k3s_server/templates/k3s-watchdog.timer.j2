@@ -1,0 +1,10 @@
+# Managed by Ansible (roles/k3s_server).
+[Unit]
+Description=Check for stuck cluster controllers every 5 minutes
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target

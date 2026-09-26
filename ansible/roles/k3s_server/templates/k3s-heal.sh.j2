@@ -1,0 +1,59 @@
+#!/bin/sh
+# Managed by Ansible (roles/k3s_server). Restarts controllers that hold Kubernetes watches, so
+# they don't keep routing or reconciling from a stale view after the API server was away.
+#
+#   k3s-heal post-start   wait for a stable API server, then restart every listed controller
+#   k3s-heal restart NAME...  restart specific "namespace/deployment" entries now
+set -eu
+
+KUBECTL="/usr/local/bin/k3s kubectl"
+DEPLOYMENTS="{{ k3s_heal_deployments | join(' ') }}"
+
+log() { echo "k3s-heal: $*"; }
+
+wait_for_stable_api() {
+	stable=0
+	# Up to 30 minutes: the API server can take a while after an etcd restore or migration.
+	for _ in $(seq 1 180); do
+		if $KUBECTL get --raw /readyz >/dev/null 2>&1; then stable=$((stable + 1)); else stable=0; fi
+		[ "$stable" -ge {{ k3s_heal_stable_checks }} ] && return 0
+		sleep 10
+	done
+	log "API server not stable after 30 minutes; giving up"
+	return 1
+}
+
+restart() {
+	for target in "$@"; do
+		namespace=${target%%/*}
+		name=${target#*/}
+		if [ "$name" = "*" ]; then
+			names=$($KUBECTL -n "$namespace" get deploy -o name 2>/dev/null || true)
+		else
+			names=$($KUBECTL -n "$namespace" get deploy "$name" -o name 2>/dev/null || true)
+		fi
+		for deployment in $names; do
+			if $KUBECTL -n "$namespace" rollout restart "$deployment" >/dev/null; then
+				log "restarted $namespace/${deployment#deployment.apps/}"
+			else
+				log "could not restart $namespace/${deployment#deployment.apps/}"
+			fi
+		done
+	done
+}
+
+case "${1:-}" in
+	post-start)
+		wait_for_stable_api
+		# shellcheck disable=SC2086
+		restart $DEPLOYMENTS
+		;;
+	restart)
+		shift
+		restart "$@"
+		;;
+	*)
+		echo "usage: k3s-heal post-start | restart namespace/deployment..." >&2
+		exit 2
+		;;
+esac

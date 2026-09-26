@@ -125,9 +125,22 @@ After the migration: Traefik v3.3.4 lost its Kubernetes watches during the
 API server restart (log: "failed to list ... apiserver not ready" at 08:37
 UTC) and never re-established them, so it kept routing to pod IPs from before
 the restart. strikers went down with a 504 once its pod was replaced. Restarting
-Traefik (`kubectl -n traefik rollout restart deploy/traefik`) fixed it. After
-any k3s server restart, check that Traefik routes to current pod IPs, or just
-restart it.
+Traefik (`kubectl -n traefik rollout restart deploy/traefik`) fixed it. The same
+outage left the Flux image controllers and the local-path provisioner stuck.
+
+This is now automatic (roles/k3s_server, `ansible-playbook site.yml --tags k3s-heal`):
+
+- `k3s-heal.service` runs after every k3s start. Once the API server has answered
+  `/readyz` for a minute, it restarts the watch-based controllers listed in
+  `k3s_heal_deployments` (Traefik, local-path-provisioner, cilium-operator, Flux,
+  cert-manager, external-dns, MetalLB, the Tailscale operator).
+- `k3s-watchdog.timer` checks every 5 minutes for a stuck controller when k3s did
+  not restart: a claim pending for 5 minutes without a volume restarts the
+  provisioner; an image policy the update automation hasn't seen for 15 minutes
+  restarts the Flux image controllers. Each has a cooldown.
+
+Logs: `journalctl -u k3s-heal -u k3s-watchdog`. Run it by hand with
+`k3s-heal post-start` or `k3s-heal restart namespace/deployment`.
 
 Checking etcd:
 

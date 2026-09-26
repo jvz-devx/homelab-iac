@@ -1,0 +1,18 @@
+---
+# Controllers that keep Kubernetes watches and don't always recover after the API server
+# goes away (k3s restart, etcd migration). They are restarted automatically: once after every
+# k3s start, and by the watchdog when a concrete symptom shows up. Missing ones are skipped,
+# so the same list serves every cluster. "namespace/*" means every deployment there.
+k3s_heal_deployments:
+  - traefik/traefik
+  - kube-system/local-path-provisioner
+  - kube-system/cilium-operator
+  - flux-system/*
+  - cert-manager/*
+  - external-dns/external-dns
+  - metallb-system/metallb-controller
+  - tailscale/operator
+
+# The API server must answer /readyz this many times in a row, 10 seconds apart, before the
+# post-start heal restarts anything (k3s sometimes restarts twice in quick succession).
+k3s_heal_stable_checks: 6

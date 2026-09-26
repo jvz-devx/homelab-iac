@@ -1,0 +1,9 @@
+# Managed by Ansible (roles/k3s_server).
+[Unit]
+Description=Restart stuck cluster controllers (see /usr/local/bin/k3s-watchdog)
+After=k3s.service
+Requisite=k3s.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/k3s-watchdog

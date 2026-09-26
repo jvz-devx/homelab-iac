@@ -1,0 +1,72 @@
+#!/bin/sh
+# Managed by Ansible (roles/k3s_server). Runs every 5 minutes (k3s-watchdog.timer) and restarts
+# a controller when it has visibly stopped working, e.g. after an API server hiccup that did not
+# restart k3s. Each check has a threshold before acting and a cooldown after, so it cannot loop.
+set -eu
+
+KUBECTL="/usr/local/bin/k3s kubectl"
+STATE=/var/lib/k3s-watchdog
+mkdir -p "$STATE"
+now=$(date +%s)
+
+log() { echo "k3s-watchdog: $*"; }
+
+# True once "$1" has held for at least $2 seconds; the first sighting is remembered in $STATE.
+held_for() {
+	file="$STATE/$1.since"
+	[ -f "$file" ] || echo "$now" >"$file"
+	[ $((now - $(cat "$file"))) -ge "$2" ]
+}
+clear_symptom() { rm -f "$STATE/$1.since"; }
+
+# True when the last restart for "$1" was less than $2 seconds ago.
+cooling_down() {
+	file="$STATE/$1.restarted"
+	[ -f "$file" ] && [ $((now - $(cat "$file"))) -lt "$2" ]
+}
+mark_restarted() { echo "$now" >"$STATE/$1.restarted"; }
+
+$KUBECTL get --raw /readyz >/dev/null 2>&1 || { log "API server not ready; skipping"; exit 0; }
+
+# 1. A claim that already has a node but no volume after 5 minutes: the provisioner is stuck.
+stuck_claims=$($KUBECTL get pvc -A -o json | jq -r --argjson now "$now" '
+	.items[]
+	| select(.status.phase == "Pending")
+	| select(.metadata.annotations["volume.kubernetes.io/selected-node"] != null)
+	| select(($now - (.metadata.creationTimestamp | fromdateiso8601)) > 300)
+	| "\(.metadata.namespace)/\(.metadata.name)"')
+if [ -n "$stuck_claims" ]; then
+	if cooling_down provisioner 900; then
+		log "claims still pending, provisioner restarted recently: $stuck_claims"
+	else
+		log "claims pending without a volume: $stuck_claims"
+		/usr/local/bin/k3s-heal restart kube-system/local-path-provisioner
+		mark_restarted provisioner
+	fi
+fi
+
+# 2. An image policy found a new image, but the update automation has not seen it for 15
+#    minutes (it runs every few minutes): the Flux image controllers are stuck.
+lagging=$($KUBECTL get imagepolicy,imageupdateautomation -A -o json 2>/dev/null | jq -r '
+	([.items[] | select(.kind == "ImagePolicy" and .status.latestRef.digest != null)
+		| {key: "\(.metadata.namespace)/\(.metadata.name)", value: .status.latestRef.digest}]
+		| from_entries) as $latest
+	| [.items[] | select(.kind == "ImageUpdateAutomation") as $automation
+		| ($automation.status.observedPolicies // {}) | to_entries[]
+		| select($latest["\($automation.metadata.namespace)/\(.key)"] != null)
+		| select(.value.digest != $latest["\($automation.metadata.namespace)/\(.key)"])
+		| .key] | unique | join(" ")' 2>/dev/null || true)
+if [ -n "$lagging" ]; then
+	if held_for image-automation 900; then
+		if cooling_down image-automation 1800; then
+			log "image automation still behind ($lagging), restarted recently"
+		else
+			log "image automation behind for 15 minutes: $lagging"
+			/usr/local/bin/k3s-heal restart flux-system/image-reflector-controller flux-system/image-automation-controller
+			mark_restarted image-automation
+			clear_symptom image-automation
+		fi
+	fi
+else
+	clear_symptom image-automation
+fi

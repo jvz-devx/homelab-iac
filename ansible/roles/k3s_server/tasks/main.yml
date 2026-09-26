@@ -47,6 +47,36 @@
   until: k3s_ready.rc == 0
   changed_when: false
 
+- name: Install the controller self-healing scripts
+  ansible.builtin.template:
+    src: "{{ item }}.sh.j2"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: "0755"
+  loop: [k3s-heal, k3s-watchdog]
+  tags: [k3s-heal]
+
+- name: Install the controller self-healing units
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop: [k3s-heal.service, k3s-watchdog.service, k3s-watchdog.timer]
+  tags: [k3s-heal]
+
+- name: Enable the post-start heal and the watchdog timer
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    daemon_reload: true
+  loop: [k3s-heal.service, k3s-watchdog.timer]
+  tags: [k3s-heal]
+
+- name: Start the watchdog timer
+  ansible.builtin.systemd:
+    name: k3s-watchdog.timer
+    state: started
+  tags: [k3s-heal]
+
 - name: Fetch kubeconfig to local machine
   ansible.builtin.fetch:
     src: /etc/rancher/k3s/k3s.yaml

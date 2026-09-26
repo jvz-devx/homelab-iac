@@ -1,0 +1,15 @@
+# Managed by Ansible (roles/k3s_server).
+# Runs after every k3s start (PartOf makes a k3s restart re-run it) and restarts the
+# controllers in k3s_heal_deployments once the API server is stable again.
+[Unit]
+Description=Restart watch-based controllers after the k3s API server comes back
+After=k3s.service
+PartOf=k3s.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/k3s-heal post-start
+TimeoutStartSec=35min
+
+[Install]
+WantedBy=k3s.service

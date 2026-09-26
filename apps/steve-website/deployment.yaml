@@ -41,6 +41,9 @@ spec:
                 secretKeyRef:
                   name: steve-website-secrets
                   key: BETTER_AUTH_SECRET
+            # Uploaded images and their WebP variants (admin media library).
+            - name: MEDIA_DIR
+              value: /app/data/media
           ports:
             - name: http
               containerPort: 3000
@@ -59,7 +62,15 @@ spec:
           resources:
             requests:
               cpu: 10m
-              memory: 128Mi
+              memory: 256Mi
+            # Image uploads decode the original once in memory (sharp).
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: media
+              mountPath: /app/data/media
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-data

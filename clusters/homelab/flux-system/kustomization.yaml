@@ -3,3 +3,20 @@ kind: Kustomization
 resources:
 - gotk-components.yaml
 - gotk-sync.yaml
+# Every Flux controller runs a single replica, so leader election only costs:
+# six leases renewed every ~5 s were over half of all writes to k3s's SQLite
+# datastore, whose compaction had fallen 2.2M revisions behind and kept
+# k3s-server busy. The later flag overrides the one in gotk-components.yaml;
+# Recreate keeps two instances of a controller from ever running at once.
+patches:
+- target:
+    kind: Deployment
+    labelSelector: app.kubernetes.io/part-of=flux
+  patch: |
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --enable-leader-election=false
+    - op: add
+      path: /spec/strategy
+      value:
+        type: Recreate

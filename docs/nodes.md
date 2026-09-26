@@ -85,8 +85,8 @@ the app server-side under Flux's field manager did the same job:
 (the SOPS-encrypted Secrets are refused by the API server and left as they are).
 Also unsuspend any CronJob the script suspended; Flux does not reset that field.
 
-Moved on 2026-09-26 (old copies still on `k3s-node`, PVs named
-`<old pv>-k3s-worker-1`): strikers-data (2.5 GB), hermes-friend-data (280 MB),
+Moved on 2026-09-26 (PVs named `<old pv>-k3s-worker-1`; the old copies on
+`k3s-node` were deleted after the move): strikers-data (2.5 GB), hermes-friend-data (280 MB),
 klavier postgres-data (50 MB), boodschappen-data.
 
 ## The k3s datastore (why the worker was added)
@@ -113,16 +113,13 @@ database is 26 MB (132 MB with its WAL) against 5.4 GB before, `k3s-server`
 dropped from 230-300% CPU to near idle, and Flux reconciles no longer time
 out. The node now also has the `etcd` role.
 
-Left behind in `/var/lib/rancher/k3s/server/db/` on `k3s-node`:
-`state.db.migrated` (the old SQLite database, 5.4 GB) and
-`state.db.backup-before-vacuum-20260625092836` (12.8 GB). A copy of the
-pre-migration `db/` directory and the server token is on node2 in
-`/root/k3s-datastore-backup-20260926/`. Delete them once the cluster has
-run well for a while.
-
-Rolling back to SQLite: stop k3s, remove `--cluster-init` from the flags,
-move `db/etcd` aside and restore `state.db` (from `state.db.migrated` or the
-node2 backup), then start k3s.
+The old SQLite files (`state.db.migrated`, the June 2026 pre-vacuum
+backup) and the pre-migration backup on node2 were deleted the same day,
+freeing ~19 GB on `k3s-node` (79% to 46% of its disk). An etcd snapshot taken
+just before (`pre-cleanup-20260926`) is in `db/snapshots/` on `k3s-node` and
+copied to node2 at `/root/k3s-etcd-snapshots/`. Restoring one:
+`k3s server --cluster-reset --cluster-reset-restore-path=<snapshot>` with
+k3s stopped (see the k3s etcd-snapshot docs).
 
 Checking etcd:
 

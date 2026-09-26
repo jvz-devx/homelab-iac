@@ -11,7 +11,9 @@ resources:
 # six leases renewed every ~5 s were over half of all writes to k3s's SQLite
 # datastore, whose compaction had fallen 2.2M revisions behind and kept
 # k3s-server busy. The later flag overrides the one in gotk-components.yaml;
-# Recreate keeps two instances of a controller from ever running at once.
+# maxSurge 0 stops the old pod before the new one starts, so two instances of
+# a controller never run at once (Recreate clashes with the defaulted
+# rollingUpdate fields on the live Deployments).
 patches:
   - target:
       kind: Deployment
@@ -23,4 +25,7 @@ patches:
       - op: add
         path: /spec/strategy
         value:
-          type: Recreate
+          type: RollingUpdate
+          rollingUpdate:
+            maxSurge: 0
+            maxUnavailable: 1

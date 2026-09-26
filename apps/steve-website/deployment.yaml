@@ -45,6 +45,14 @@ spec:
             # Uploaded images and their WebP variants (admin media library).
             - name: MEDIA_DIR
               value: /app/data/media
+            # Purge deleted images from Cloudflare's cache (token: Zone.Cache Purge only).
+            - name: CLOUDFLARE_ZONE_ID
+              value: 9c95c564e5855e0e653867092d5723a4
+            - name: CLOUDFLARE_PURGE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: steve-website-secrets
+                  key: CLOUDFLARE_PURGE_TOKEN
           ports:
             - name: http
               containerPort: 3000

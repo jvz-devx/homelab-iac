@@ -20,7 +20,7 @@ patch in each app's `kustomization.yaml` (search for "Priority").
 | Priority | Node | Apps |
 |---|---|---|
 | 1 | `k3s-node` (N100) | toepen (+ valkey), resonance (bot, pot-server, redis), steve-website |
-| 2 | `k3s-worker-1` | strikers, klavier (app, ws-server, redis, postgres), boodschappen (+ weekly reminder CronJob), hermes-friend, liverpc-docs, minecraft-resource-pack |
+| 2 | `k3s-worker-1` | strikers, klavier (app, ws-server, redis, postgres), boodschappen (+ weekly reminder CronJob), hermes-friend, minecraft-resource-pack |
 
 Infrastructure (Flux, cert-manager, coredns, traefik, cloudflared,
 external-dns, metallb, tailscale operator, rclone-nas, ...) is not pinned and

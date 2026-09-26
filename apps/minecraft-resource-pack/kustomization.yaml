@@ -6,3 +6,12 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+# Priority 2: runs on k3s-worker-1 (node1). See docs/nodes.md.
+patches:
+  - target:
+      kind: Deployment
+    patch: |
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          kubernetes.io/hostname: k3s-worker-1

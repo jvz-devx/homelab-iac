@@ -9,3 +9,12 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+# Priority 1: runs on the N100 (k3s-node). See docs/nodes.md.
+patches:
+  - target:
+      kind: Deployment
+    patch: |
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          kubernetes.io/hostname: k3s-node

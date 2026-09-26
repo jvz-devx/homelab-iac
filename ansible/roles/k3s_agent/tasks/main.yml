@@ -1,0 +1,61 @@
+---
+# Declarative k3s agent (worker) installation.
+# Joins the server in the `master` group with its node token, which is read
+# on the server and never logged.
+
+- name: Check if k3s agent is installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Read the server's node token
+  ansible.builtin.slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  delegate_to: "{{ groups['master'][0] }}"
+  register: k3s_node_token
+  no_log: true
+  when: not k3s_binary.stat.exists
+
+- name: Install k3s agent
+  ansible.builtin.shell: |
+    curl -sfL https://get.k3s.io | \
+      INSTALL_K3S_VERSION="{{ k3s_version }}" \
+      K3S_URL="https://{{ k3s_node_ip }}:6443" \
+      K3S_TOKEN="{{ k3s_node_token.content | b64decode | trim }}" \
+      sh -s - agent {{ k3s_agent_flags }}
+  args:
+    creates: /usr/local/bin/k3s
+  no_log: true
+  when: not k3s_binary.stat.exists
+
+- name: Ensure k3s-agent systemd override directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/k3s-agent.service.d
+    state: directory
+    mode: "0755"
+
+# The installer keeps K3S_URL and K3S_TOKEN in k3s-agent.service.env; the
+# override only declares the flags.
+- name: Deploy k3s-agent systemd override (declarative flags)
+  ansible.builtin.template:
+    src: k3s-agent-override.conf.j2
+    dest: /etc/systemd/system/k3s-agent.service.d/override.conf
+    mode: "0644"
+  notify: restart k3s-agent
+
+- name: Ensure k3s-agent is enabled and running
+  ansible.builtin.systemd:
+    name: k3s-agent
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for the node to register and become Ready
+  ansible.builtin.command: >
+    k3s kubectl wait --for=condition=Ready node/{{ inventory_hostname }} --timeout=30s
+  delegate_to: "{{ groups['master'][0] }}"
+  register: k3s_agent_ready
+  retries: 20
+  delay: 15
+  until: k3s_agent_ready.rc == 0
+  changed_when: false

@@ -1,0 +1,5 @@
+---
+k3s_node_ip_agent: 192.168.1.101
+k3s_agent_flags: >-
+  --node-ip {{ k3s_node_ip_agent }}
+  --kubelet-arg=feature-gates=KubeletInUserNamespace=true

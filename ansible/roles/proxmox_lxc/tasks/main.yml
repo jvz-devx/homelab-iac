@@ -15,6 +15,9 @@
   failed_when: false
   changed_when: false
 
+# --searchdomain " ": an empty string stops Proxmox from injecting a search
+# domain that breaks DNS. (A comment inside the folded command below would be
+# passed to pct as arguments.)
 - name: Create LXC {{ lxc_id }}
   ansible.builtin.command: >
     pct create {{ lxc_id }}
@@ -26,7 +29,7 @@
     --rootfs {{ lxc_disk }}
     --net0 name=eth0,bridge=vmbr0,ip={{ lxc_ip }},gw={{ lxc_gateway }}
     --nameserver "10.43.0.10 8.8.8.8"
-    --searchdomain " "  # empty string prevents Proxmox from injecting a search domain that breaks DNS
+    --searchdomain " "
     --features {{ lxc_features | join(',') }}
     --unprivileged {{ '0' if lxc_privileged else '1' }}
     --onboot {{ '1' if lxc_onboot else '0' }}

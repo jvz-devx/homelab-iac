@@ -1,0 +1,43 @@
+---
+# k3s worker (agent) nodes on other Proxmox hosts.
+# Usage: ansible-playbook k3s-worker.yml
+#
+# Separate from site.yml on purpose: site.yml's proxmox_lxc run stops and
+# reconfigures LXC 101 (the k3s server). This playbook only touches the
+# `proxmox_workers` hosts and the `k3s_agents` nodes. Re-running it stops and
+# restarts the worker LXC (proxmox_lxc applies config with the container off).
+
+- name: "Worker stage 1: host kernel modules and LXC on the worker's Proxmox host"
+  hosts: proxmox_workers
+  gather_facts: false
+  tags: [proxmox]
+  tasks:
+    - name: Load kernel modules for k3s and Cilium now
+      community.general.modprobe:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ host_kernel_modules }}"
+
+    - name: Load kernel modules for k3s and Cilium at boot
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/k3s-worker.conf
+        mode: "0644"
+        content: "{{ host_kernel_modules | join('\n') }}\n"
+
+    - name: Create the worker LXC
+      ansible.builtin.include_role:
+        name: proxmox_lxc
+
+- name: "Worker stage 2: prepare the node"
+  hosts: k3s_agents
+  become: true
+  tags: [k3s]
+  roles:
+    - k3s_prereqs
+
+- name: "Worker stage 3: join the cluster as a k3s agent"
+  hosts: k3s_agents
+  become: true
+  tags: [k3s]
+  roles:
+    - k3s_agent

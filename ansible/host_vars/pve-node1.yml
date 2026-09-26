@@ -1,0 +1,26 @@
+---
+# LXC for k3s-worker-1 on node1 (i5-10400T, 12 threads, 31 GB; also runs
+# Home Assistant and hermes). Overrides the k3s-node defaults in group_vars.
+lxc_id: 102
+lxc_hostname: k3s-worker-1
+lxc_cores: 6
+lxc_memory: 12288
+lxc_swap: 1024
+lxc_disk: "local-lvm:64"
+lxc_ip: 192.168.1.101/24
+
+# Kernel modules the worker's k3s and Cilium (VXLAN tunnel, kube-proxy
+# replacement) use; the container shares node1's kernel and cannot load them.
+host_kernel_modules:
+  - overlay
+  - br_netfilter
+  - vxlan
+  - ip_tables
+  - ip6_tables
+  - iptable_nat
+  - iptable_mangle
+  - iptable_raw
+  - xt_socket
+  - xt_TPROXY
+  - xt_mark
+  - xt_CT

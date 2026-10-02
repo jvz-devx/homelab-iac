@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: aiostreams
-          image: ghcr.io/viren070/aiostreams:v2.35.7@sha256:aa3bc7fce5876e208638b98546d3cdcf1ccd9dc1a8a4d5294971ef4507822dd5 # {"$imagepolicy": "flux-system:aiostreams"}
+          image: ghcr.io/viren070/aiostreams:v2.35.8@sha256:9065546d8e74511b249a94287b2fd15cad212c22fcb9cbe274ab57b4f4aa9d8b # {"$imagepolicy": "flux-system:aiostreams"}
           imagePullPolicy: IfNotPresent
           env:
             - name: BASE_URL

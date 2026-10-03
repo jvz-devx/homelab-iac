@@ -63,10 +63,6 @@ spec:
               value: https://strikers.jensvanzutphen.com
             - name: STRIKERS_ISO_PATH
               value: /games/strikers.iso
-            # Game-server matches run the Rust simulation authoritatively; the C++
-            # worker only supplies the fielder decisions Rust does not port yet.
-            - name: STRIKERS_SIM_AUTHORITY
-              value: rust
             # WebTransport datagrams for game frames. Browsers reach the public
             # UDP relay on Hetzner (apps/hetzner/strikers-relay), which forwards
             # over Tailscale to the strikers-webtransport Service below. TLS ends

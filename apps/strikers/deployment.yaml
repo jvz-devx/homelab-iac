@@ -28,7 +28,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: wait-for-seed
-          image: ghcr.io/jvz-devx/strikers-wasm:cb6e53a@sha256:85e27eea9a9f66b6e048f86be905a7fd44c0ea092ae1283ddb75162eda005235
+          image: ghcr.io/jvz-devx/strikers-wasm:2bafe12@sha256:8d060afba9b8aa6c617fcfba04c0460505ceec53630a686bdbfc81322c856e55
           command: [/bin/sh, -ec]
           args:
             - |
@@ -52,7 +52,7 @@ spec:
               mountPath: /data
       containers:
         - name: strikers
-          image: ghcr.io/jvz-devx/strikers-wasm:cb6e53a@sha256:85e27eea9a9f66b6e048f86be905a7fd44c0ea092ae1283ddb75162eda005235
+          image: ghcr.io/jvz-devx/strikers-wasm:2bafe12@sha256:8d060afba9b8aa6c617fcfba04c0460505ceec53630a686bdbfc81322c856e55
           imagePullPolicy: IfNotPresent
           env:
             - name: STRIKERS_DATA_DIR

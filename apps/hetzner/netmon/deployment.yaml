@@ -1,0 +1,97 @@
+---
+# Stdlib-only Python webhook (server.py, shipped as a ConfigMap) that stores
+# network-monitoring events from Home Assistant in SQLite. See README.md.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netmon
+  namespace: netmon
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: netmon
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: netmon
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: netmon
+          image: python:3.14.8-alpine3.24@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+          imagePullPolicy: IfNotPresent
+          command: [python3, -u, /app/server.py]
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: NETMON_DB
+              value: /data/netmon.db
+            - name: NETMON_TOKEN_DIR
+              value: /etc/netmon/tokens
+            - name: NETMON_PORT
+              value: "8080"
+            - name: NETMON_RETENTION_DAYS
+              value: "400"
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: server
+              mountPath: /app
+              readOnly: true
+            - name: tokens
+              mountPath: /etc/netmon/tokens
+              readOnly: true
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: server
+          configMap:
+            name: netmon-server
+        - name: tokens
+          secret:
+            secretName: netmon-tokens
+            defaultMode: 0440
+        - name: data
+          persistentVolumeClaim:
+            claimName: netmon-data
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi

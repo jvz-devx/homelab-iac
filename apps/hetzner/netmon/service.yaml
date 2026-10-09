@@ -1,0 +1,17 @@
+---
+# Reached only by cloudflared (hetzner-aiostreams tunnel) for
+# netmon.jensvanzutphen.com; see terraform/cloudflare/main.tf.
+apiVersion: v1
+kind: Service
+metadata:
+  name: netmon
+  namespace: netmon
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: netmon
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

@@ -69,6 +69,10 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "hetzner_aiostreams" 
         service  = "http://aiostreams.aiostreams.svc.cluster.local:3000"
       },
       {
+        hostname = "netmon.jensvanzutphen.com"
+        service  = "http://netmon.netmon.svc.cluster.local:80"
+      },
+      {
         service = "http_status:404"
       }
     ]
@@ -169,6 +173,18 @@ resource "cloudflare_dns_record" "nzbdav_jensvanzutphen" {
   ttl     = 1
   proxied = true
   comment = "NZBDav on Hetzner via dedicated Cloudflare Tunnel."
+}
+
+resource "cloudflare_dns_record" "netmon_jensvanzutphen" {
+  provider = cloudflare.dns
+
+  zone_id = var.jensvanzutphen_zone_id
+  name    = "netmon"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.hetzner_aiostreams.id}.cfargotunnel.com"
+  type    = "CNAME"
+  ttl     = 1
+  proxied = true
+  comment = "Network-monitoring webhook on Hetzner via dedicated Cloudflare Tunnel."
 }
 
 resource "cloudflare_dns_record" "strikers_wt_jensvanzutphen" {

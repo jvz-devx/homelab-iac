@@ -32,6 +32,7 @@ tofu -chdir=terraform/cloudflare apply
   - `prowlarr.tunetap.xyz -> http://prowlarr.prowlarr.svc.cluster.local:9696`
   - `nzbdav.jensvanzutphen.com -> http://nzbdav.nzbdav.svc.cluster.local:3000`
   - `aiostreams.tunetap.xyz -> http://aiostreams.aiostreams.svc.cluster.local:3000`
+  - `netmon.jensvanzutphen.com -> http://netmon.netmon.svc.cluster.local:80`
 - Private Tailscale-only DNS:
   - `chat-api.jensvanzutphen.com -> 100.71.48.37`
 - Public unproxied DNS:

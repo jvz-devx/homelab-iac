@@ -37,7 +37,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: ROMM_BASE_URL
-              value: https://romm.jensvanzutphen.com
+              value: https://romm.zebu-dorian.ts.net
             - name: ROMM_DB_DRIVER
               value: mariadb
             - name: DB_HOST
@@ -76,17 +76,19 @@ spec:
               port: http
             periodSeconds: 5
             failureThreshold: 60
+          # The heartbeat touches the NAS-backed library, which can stall
+          # for a while during scans. Don't let that restart the pod.
           readinessProbe:
             httpGet:
               path: /api/heartbeat
               port: http
             periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 6
           livenessProbe:
-            httpGet:
-              path: /api/heartbeat
+            tcpSocket:
               port: http
             periodSeconds: 30
-            timeoutSeconds: 5
           resources:
             requests:
               cpu: 100m

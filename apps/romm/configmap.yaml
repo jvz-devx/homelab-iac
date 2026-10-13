@@ -8,6 +8,11 @@ metadata:
   namespace: romm
 data:
   config.yml: |
+    filesystem:
+      # Hashing reads every ROM in full through the router's FTP server,
+      # which takes days and stalls the NAS mount. Costs Hasheous and
+      # RetroAchievements matching.
+      skip_hash_calculation: true
     exclude:
       roms:
         single_file:

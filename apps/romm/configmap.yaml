@@ -16,7 +16,16 @@ data:
     exclude:
       roms:
         single_file:
+          # Emulator saves sit next to the ROMs.
+          extensions:
+            - sav
+            - srm
+            - state
           # EmuDeck drops these into every platform folder.
           names:
             - systeminfo.txt
             - metadata.txt
+        multi_file:
+          # EmuDeck/ES-DE scraped artwork.
+          names:
+            - media

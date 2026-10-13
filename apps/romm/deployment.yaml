@@ -58,6 +58,16 @@ spec:
                 secretKeyRef:
                   name: romm-secrets
                   key: ROMM_AUTH_SECRET_KEY
+            - name: IGDB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: romm-secrets
+                  key: IGDB_CLIENT_ID
+            - name: IGDB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: romm-secrets
+                  key: IGDB_CLIENT_SECRET
             # Matches games by file hash, no API key needed.
             - name: HASHEOUS_API_ENABLED
               value: "true"

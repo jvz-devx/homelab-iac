@@ -1,0 +1,17 @@
+# Seed for /romm/config/config.yml. The init container copies it only when the
+# file is missing, because RomM's UI writes to config.yml too (platform
+# bindings, exclusions). To re-seed, delete the file on the romm-config volume.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: romm-config-seed
+  namespace: romm
+data:
+  config.yml: |
+    exclude:
+      roms:
+        single_file:
+          # EmuDeck drops these into every platform folder.
+          names:
+            - systeminfo.txt
+            - metadata.txt

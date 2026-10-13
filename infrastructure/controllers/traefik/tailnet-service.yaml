@@ -1,0 +1,25 @@
+# Traefik on the tailnet. The Tailscale operator gives this Service the device
+# traefik-homelab. Tailnet-only apps point their public DNS record (an A record,
+# not proxied) at that device's 100.x IP, so the name only works for tailnet
+# devices while TLS still uses the normal cert-manager certificate.
+# Recreating this Service can change the IP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-tailnet
+  namespace: traefik
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: traefik-homelab
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/instance: traefik-traefik
+    app.kubernetes.io/name: traefik
+  ports:
+    - name: web
+      port: 80
+      targetPort: web
+    - name: websecure
+      port: 443
+      targetPort: websecure

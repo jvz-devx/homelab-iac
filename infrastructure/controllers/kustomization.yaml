@@ -11,6 +11,7 @@ resources:
   # Ingress
   - traefik/namespace.yaml
   - traefik/helmrelease.yaml
+  - traefik/tailnet-service.yaml
   # Certificate management
   - cert-manager/namespace.yaml
   - cert-manager/helmrelease.yaml

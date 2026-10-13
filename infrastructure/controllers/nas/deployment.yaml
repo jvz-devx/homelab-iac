@@ -35,9 +35,16 @@ spec:
             - --addr=:2049
             - --vfs-cache-mode=full
             - --vfs-cache-max-age=24h
+            # The cache sits in the container's writable layer on k3s-node,
+            # which shares the control plane's disk. Library scans (RomM)
+            # read every file, so keep it bounded.
+            - --vfs-cache-max-size=10G
             - --vfs-read-ahead=128M
             - --no-checksum
             - --transfers=8
+            # The router allows 4-5 FTP connections in total; leave one
+            # free for other clients.
+            - --ftp-concurrency=3
           env:
             - name: FTP_USER
               valueFrom:

@@ -1,17 +1,29 @@
-# Tailnet-only: https://romm.zebu-dorian.ts.net, served by the Tailscale
-# operator with a Tailscale-issued certificate. Not exposed via Cloudflare.
+# Tailnet-only: romm.jensvanzutphen.com is an unproxied A record to Traefik's
+# tailnet device (traefik-homelab, infrastructure/controllers/traefik/
+# tailnet-service.yaml), so only Tailscale devices can reach it.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: romm
   namespace: romm
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    external-dns.alpha.kubernetes.io/target: 100.90.157.57
 spec:
-  ingressClassName: tailscale
-  defaultBackend:
-    service:
-      name: romm
-      port:
-        number: 8080
+  ingressClassName: traefik
+  rules:
+    - host: romm.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: romm
+                port:
+                  number: 8080
   tls:
     - hosts:
-        - romm
+        - romm.jensvanzutphen.com
+      secretName: romm-tls

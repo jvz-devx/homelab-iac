@@ -37,7 +37,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: ROMM_BASE_URL
-              value: https://romm.zebu-dorian.ts.net
+              value: https://romm.jensvanzutphen.com
             - name: ROMM_DB_DRIVER
               value: mariadb
             - name: DB_HOST
@@ -68,6 +68,11 @@ spec:
                 secretKeyRef:
                   name: romm-secrets
                   key: IGDB_CLIENT_SECRET
+            - name: RETROACHIEVEMENTS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: romm-secrets
+                  key: RETROACHIEVEMENTS_API_KEY
             # Matches games by file hash, no API key needed.
             - name: HASHEOUS_API_ENABLED
               value: "true"

@@ -16,6 +16,9 @@ spec:
         app.kubernetes.io/name: romm
     spec:
       automountServiceAccountToken: false
+      # The Service named "romm" would inject ROMM_PORT=tcp://..., which RomM
+      # reads as its own listen port.
+      enableServiceLinks: false
       initContainers:
         - name: seed-config
           image: busybox:1.36

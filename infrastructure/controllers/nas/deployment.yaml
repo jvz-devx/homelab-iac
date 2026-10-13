@@ -21,6 +21,9 @@ spec:
         app: rclone-nas
     spec:
       hostNetwork: true
+      # NFS PVs point at this node's IP (192.168.1.100).
+      nodeSelector:
+        kubernetes.io/hostname: k3s-node
       containers:
         - name: rclone
           image: rclone/rclone:1.73.0

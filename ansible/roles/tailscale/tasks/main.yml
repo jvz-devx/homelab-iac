@@ -110,10 +110,27 @@
       [Service]
       Type=oneshot
       ExecStart=/usr/local/sbin/tailscale-route-table-overrides
-      RemainAfterExit=yes
 
       [Install]
       WantedBy=multi-user.target
+  when: tailscale_route_table_overrides | default([]) | length > 0
+
+# tailscaled rewrites table 52 whenever an accepted subnet route changes (e.g. the
+# subnet router reconnects), which silently undoes a boot-time-only override.
+- name: Install Tailscale route table override timer
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/tailscale-route-table-overrides.timer
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Re-apply local route overrides after Tailscale route changes
+
+      [Timer]
+      OnBootSec=30s
+      OnUnitActiveSec=60s
+
+      [Install]
+      WantedBy=timers.target
   when: tailscale_route_table_overrides | default([]) | length > 0
 
 - name: Enable Tailscale route table override service
@@ -124,11 +141,22 @@
     state: started
   when: tailscale_route_table_overrides | default([]) | length > 0
 
+- name: Enable Tailscale route table override timer
+  ansible.builtin.systemd:
+    name: tailscale-route-table-overrides.timer
+    enabled: true
+    daemon_reload: true
+    state: started
+  when: tailscale_route_table_overrides | default([]) | length > 0
+
 - name: Remove stale Tailscale route table override service
   ansible.builtin.systemd:
-    name: tailscale-route-table-overrides
+    name: "{{ item }}"
     enabled: false
     state: stopped
+  loop:
+    - tailscale-route-table-overrides.timer
+    - tailscale-route-table-overrides
   failed_when: false
   when: tailscale_route_table_overrides | default([]) | length == 0
 
@@ -138,5 +166,6 @@
     state: absent
   loop:
     - /etc/systemd/system/tailscale-route-table-overrides.service
+    - /etc/systemd/system/tailscale-route-table-overrides.timer
     - /usr/local/sbin/tailscale-route-table-overrides
   when: tailscale_route_table_overrides | default([]) | length == 0

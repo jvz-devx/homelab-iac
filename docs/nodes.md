@@ -5,8 +5,8 @@ Proxmox machines, not a Proxmox cluster.
 
 | Node | Role | Where | Resources |
 |---|---|---|---|
-| `k3s-node` (192.168.1.100) | server (control plane, embedded etcd) + workloads | LXC 101 on node2 (192.168.1.202, Intel N100) | 3 cores, 8 GB |
-| `k3s-worker-1` (192.168.1.101) | agent (workloads only) | LXC 102 on node1 (192.168.1.201, i5-10400T, also runs Home Assistant and hermes) | 6 cores, 12 GB, 64 GB disk |
+| `k3s-node` (192.168.1.21) | server (control plane, embedded etcd) + workloads | LXC 101 on node2 (192.168.1.12, Intel N100) | 3 cores, 8 GB |
+| `k3s-worker-1` (192.168.1.22) | agent (workloads only) | LXC 102 on node1 (192.168.1.11, i5-10400T, also runs Home Assistant and hermes) | 6 cores, 12 GB, 64 GB disk |
 
 Both run k3s v1.31.4+k3s1, Cilium (VXLAN tunnel, kube-proxy replacement) and
 the MetalLB speaker. The Tailscale subnet router and the API endpoint stay on
@@ -152,8 +152,24 @@ on workers. Run it by hand with
 Checking etcd:
 
 ```bash
-ssh root@192.168.1.100 'du -sh /var/lib/rancher/k3s/server/db/etcd; ls /var/lib/rancher/k3s/server/db/snapshots'
+ssh root@192.168.1.21 'du -sh /var/lib/rancher/k3s/server/db/etcd; ls /var/lib/rancher/k3s/server/db/snapshots'
 kubectl get --raw /metrics | grep -E "^apiserver_storage_(size_bytes|db_total_size)"
 ```
 
 k3s takes etcd snapshots on its own schedule into `db/snapshots/`.
+
+## Changing a node's IP
+
+Keep static addresses out of the router's DHCP pool (192.168.1.50–250); the
+nodes use 192.168.1.11/12 (Proxmox), .21/.22 (k3s) and .41–49 (MetalLB).
+
+The server runs embedded etcd, which stores its peer URL by IP and does not
+follow a `--node-ip` change on its own. To move it: add the new address next to
+the old one inside the LXC (`ip addr add`), take a snapshot
+(`k3s etcd-snapshot save`), set `--node-ip`/`--tls-san` to the new address,
+stop k3s, wait until ports 2379/2380/6443 are free, run
+`k3s server <same flags> --cluster-reset` once, start k3s, and then update the
+member's peer URL with `etcdctl member update <id> --peer-urls=https://<new-ip>:2380`
+(the reset keeps the old peer URL). Then repoint the agent (`K3S_URL`,
+`--node-ip`), Cilium's `k8sServiceHost` and the NFS PVs (recreate them; the
+server field is immutable) before dropping the old address.

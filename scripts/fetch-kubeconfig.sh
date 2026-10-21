@@ -8,8 +8,8 @@
 # K3S_NODE can override the default ssh target.
 set -euo pipefail
 
-NODE="${K3S_NODE:-root@192.168.1.100}"
-SERVER_HOST="${K3S_SERVER_HOST:-192.168.1.100}"
+NODE="${K3S_NODE:-root@192.168.1.21}"
+SERVER_HOST="${K3S_SERVER_HOST:-192.168.1.21}"
 OUT="$(git rev-parse --show-toplevel)/kubeconfig"
 TMP="$(mktemp "${OUT}.tmp.XXXXXX")"
 trap 'rm -f "$TMP"' EXIT

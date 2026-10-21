@@ -1,6 +1,6 @@
 ---
 # Traffic model: LAN-only via public DNS (matches termix).
-#   DNS: files.jensvanzutphen.com → A 192.168.1.110 (Traefik LB, RFC1918).
+#   DNS: files.jensvanzutphen.com → A 192.168.1.41 (Traefik LB, RFC1918).
 #   DNS record is managed automatically by external-dns — every Ingress
 #   under jensvanzutphen.com is in scope by default. Resolvable from
 #   anywhere; only reachable from the LAN (private IP, no tunnel, no

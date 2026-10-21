@@ -8,7 +8,7 @@ lxc_cores: 2
 lxc_memory: 4096
 lxc_swap: 512
 lxc_disk: "local-lvm:32"
-lxc_ip: 192.168.1.100/24
+lxc_ip: 192.168.1.21/24
 lxc_gateway: 192.168.1.1
 lxc_ssh_pubkey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKvQsKbzbW9a3tncPJojcCXLjHg8aBCQCmPQVzzsRXeZ nixos"
 lxc_onboot: true
@@ -42,9 +42,10 @@ k3s_install_flags: >-
   --disable-network-policy
   --flannel-backend=none
   --write-kubeconfig-mode 644
+  --node-ip {{ k3s_node_ip }}
   --tls-san {{ k3s_node_ip }}
   --kubelet-arg=feature-gates=KubeletInUserNamespace=true
-k3s_node_ip: 192.168.1.100
+k3s_node_ip: 192.168.1.21
 
 # ── Cilium (bootstrap CNI before Flux takes over) ────────────
 cilium_version: 1.16.6
@@ -58,13 +59,13 @@ tailscale_advertise_routes:
 tailscale_route_table_overrides:
   - cidr: 192.168.1.0/24
     dev: eth0
-    src: 192.168.1.100
+    src: 192.168.1.21
     table: 52
 tailscale_advertise_exit_node: false
 
 # ── MetalLB ──────────────────────────────────────────────────
 # IP range for LoadBalancer services (must be free on your LAN)
-metallb_address_range: 192.168.1.110-192.168.1.120
+metallb_address_range: 192.168.1.41-192.168.1.49
 
 # ── FluxCD ────────────────────────────────────────────────────
 flux_github_owner: jvz-devx

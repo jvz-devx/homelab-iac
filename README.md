@@ -5,11 +5,11 @@ Fully declarative homelab infrastructure. One command from bare metal to GitOps.
 ## Architecture
 
 ```
-Proxmox node2 (192.168.1.202, N100)
-└── LXC 101 k3s-node (192.168.1.100) — privileged, Ubuntu 24.04
+Proxmox node2 (192.168.1.12, N100)
+└── LXC 101 k3s-node (192.168.1.21) — privileged, Ubuntu 24.04
     └── k3s v1.31.4 server (+ priority 1 apps)
         ├── Cilium       (CNI)
-        ├── MetalLB      (LoadBalancer, 192.168.1.110–120)
+        ├── MetalLB      (LoadBalancer, 192.168.1.41–49)
         ├── Traefik      (Ingress)
         ├── cert-manager (TLS)
         ├── FluxCD       (GitOps)
@@ -17,8 +17,8 @@ Proxmox node2 (192.168.1.202, N100)
         ├── Tailscale    (cross-cluster service access)
         └── NAS storage  (rclone FTP → 192.168.1.1)
 
-Proxmox node1 (192.168.1.201, i5-10400T)
-└── LXC 102 k3s-worker-1 (192.168.1.101) — privileged, Ubuntu 24.04
+Proxmox node1 (192.168.1.11, i5-10400T)
+└── LXC 102 k3s-worker-1 (192.168.1.22) — privileged, Ubuntu 24.04
     └── k3s v1.31.4 agent (priority 2 apps)
 ```
 
@@ -103,7 +103,7 @@ encrypted values.
 Termix is deployed as a LAN-only browser-based SSH access pod.
 
 - Namespace: `termix`
-- URL: `http://192.168.1.100:4090`
+- URL: `http://192.168.1.21:4090`
 - Runs as a fixed pod on `k3s-node`
 - Persists data at `/var/lib/termix-data` inside the LXC
 - App manifests: `apps/termix/`

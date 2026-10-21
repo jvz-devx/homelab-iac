@@ -33,31 +33,31 @@ cf dns records list 9c95c564e5855e0e653867092d5723a4 --fields name,type,content 
 ```
 
 Expected after ~1 minute:
-- `termix.jensvanzutphen.com A 192.168.1.110` (recreated by external-dns)
+- `termix.jensvanzutphen.com A 192.168.1.41` (recreated by external-dns)
 - `a-termix.jensvanzutphen.com TXT "heritage=external-dns,…/resource=ingress/termix/termix"` (new)
 
 ### Risk / timing
 
-There is a window (seconds to a couple of minutes) between the `cf delete` and external-dns writing the new record during which `termix.jensvanzutphen.com` doesn't resolve. Your existing HTTP path at `http://192.168.1.111` is unaffected (Service is still LoadBalancer there), so if you've got that tab open you don't lose access. But if you've already completed task 2 below (retire the 111 LB) or task 3 (NAS migration) first, then the hostname is your only way in — in which case do this from the LAN, with a backup shell ready.
+There is a window (seconds to a couple of minutes) between the `cf delete` and external-dns writing the new record during which `termix.jensvanzutphen.com` doesn't resolve. Your existing HTTP path at `http://192.168.1.42` is unaffected (Service is still LoadBalancer there), so if you've got that tab open you don't lose access. But if you've already completed task 2 below (retire the 111 LB) or task 3 (NAS migration) first, then the hostname is your only way in — in which case do this from the LAN, with a backup shell ready.
 
 ### Rollback
 
-If external-dns fails to recreate the record within a few minutes: manually recreate it with `cf dns records create --zone jensvanzutphen.com --body '{"type":"A","name":"termix","content":"192.168.1.110","proxied":false,"ttl":1}'`. Same content as before; no data or cert impact.
+If external-dns fails to recreate the record within a few minutes: manually recreate it with `cf dns records create --zone jensvanzutphen.com --body '{"type":"A","name":"termix","content":"192.168.1.41","proxied":false,"ttl":1}'`. Same content as before; no data or cert impact.
 
 ---
 
-## 2. Retire the 192.168.1.111 LoadBalancer IP
+## 2. Retire the 192.168.1.42 LoadBalancer IP
 
 ### Why
 
-When HTTPS was introduced, `service.yaml` was intentionally left as `type: LoadBalancer` with `loadBalancerIP: 192.168.1.111` so the existing `http://192.168.1.111` sessions didn't break during the rollout. Now that traffic goes through Traefik at `https://termix.jensvanzutphen.com`, the direct LB is dead weight and occupies an IP in the MetalLB pool.
+When HTTPS was introduced, `service.yaml` was intentionally left as `type: LoadBalancer` with `loadBalancerIP: 192.168.1.42` so the existing `http://192.168.1.42` sessions didn't break during the rollout. Now that traffic goes through Traefik at `https://termix.jensvanzutphen.com`, the direct LB is dead weight and occupies an IP in the MetalLB pool.
 
 ### Precondition
 
-Confirm nothing still reaches Termix via `192.168.1.111`:
+Confirm nothing still reaches Termix via `192.168.1.42`:
 
-- Your own browser: close any remaining `http://192.168.1.111` tabs, open `https://termix.jensvanzutphen.com` and keep using it for a day or two.
-- Other clients: `kubectl -n termix logs deploy/termix | grep -v 192.168.1.110` should be quiet. The `.110` entries come from Traefik forwarding; anything else is a direct LB hit worth investigating before proceeding.
+- Your own browser: close any remaining `http://192.168.1.42` tabs, open `https://termix.jensvanzutphen.com` and keep using it for a day or two.
+- Other clients: `kubectl -n termix logs deploy/termix | grep -v 192.168.1.41` should be quiet. The `.110` entries come from Traefik forwarding; anything else is a direct LB hit worth investigating before proceeding.
 
 ### Change
 
@@ -66,7 +66,7 @@ Edit `apps/termix/service.yaml`:
 ```yaml
 spec:
   type: ClusterIP         # was: LoadBalancer
-  # loadBalancerIP removed  (was: 192.168.1.111)
+  # loadBalancerIP removed  (was: 192.168.1.42)
 ```
 
 Commit, push, reconcile:
@@ -93,7 +93,7 @@ Termix currently writes to a `local-path`-backed PVC (`termix-data`, 5Gi, RWO). 
 StorageClass: local-path (rancher.io/local-path, reclaimPolicy: Delete)
 ```
 
-If the LXC is reprovisioned, every user / SSH credential / host entry / session log Termix has stored is gone. Copyparty already does the right thing: a pre-provisioned NFS-backed PV served by `rclone-nas` (FTP→NFS bridge on 192.168.1.100:2049) — see `apps/copyparty/deployment.yaml` lines 1–33 for the template.
+If the LXC is reprovisioned, every user / SSH credential / host entry / session log Termix has stored is gone. Copyparty already does the right thing: a pre-provisioned NFS-backed PV served by `rclone-nas` (FTP→NFS bridge on 192.168.1.21:2049) — see `apps/copyparty/deployment.yaml` lines 1–33 for the template.
 
 Goal: give Termix the same durability, **without losing current data**.
 
@@ -140,7 +140,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions: [nfsvers=3, port=2049, mountport=2049, tcp, nolock]
   nfs:
-    server: 192.168.1.100
+    server: 192.168.1.21
     path: /
 ---
 apiVersion: v1

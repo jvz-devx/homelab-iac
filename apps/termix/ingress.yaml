@@ -1,6 +1,6 @@
 ---
 # Traffic model: LAN-only via public DNS.
-#   DNS: termix.jensvanzutphen.com → 192.168.1.110 (Traefik LB, RFC1918).
+#   DNS: termix.jensvanzutphen.com → 192.168.1.41 (Traefik LB, RFC1918).
 #   Resolvable from anywhere; reachable only from the LAN.
 #   TLS: Let's Encrypt via DNS-01 (cert-manager letsencrypt-dns01),
 #   so no inbound HTTP from the ACME server is needed.

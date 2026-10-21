@@ -9,8 +9,8 @@ Fully declarative homelab IaC. Single-node k3s cluster in a Proxmox LXC containe
 ## Architecture
 
 ```
-Proxmox (192.168.1.202)
-└── LXC 101 (192.168.1.100) — privileged, Ubuntu 24.04
+Proxmox (192.168.1.12)
+└── LXC 101 (192.168.1.21) — privileged, Ubuntu 24.04
     └── k3s v1.31.4
         ├── Cilium         (CNI — replaces flannel)
         ├── MetalLB        (LoadBalancer — replaces klipper-lb)
@@ -346,9 +346,9 @@ If you're not sure whether two changes belong in the same commit: they don't. Sp
 
 | Host | IP | Role |
 |---|---|---|
-| Proxmox | 192.168.1.202 | Hypervisor |
-| k3s-node (LXC 101) | 192.168.1.100 | k3s server |
+| Proxmox | 192.168.1.12 | Hypervisor |
+| k3s-node (LXC 101) | 192.168.1.21 | k3s server |
 | Hetzner k3s | 10.80.0.2 / public Hetzner IP | second k3s server |
 | NAS | 192.168.1.1 | FTP file storage |
-| MetalLB pool | 192.168.1.110–120 | LoadBalancer VIPs |
+| MetalLB pool | 192.168.1.41–49 | LoadBalancer VIPs |
 | Domain | jensvanzutphen.com | Cloudflare Tunnel |

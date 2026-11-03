@@ -45,6 +45,20 @@ spec:
               value: "100"
             - name: SCRAPE_PROWLARR
               value: both
+            - name: SCRAPE_NYAA
+              value: live
+            # IMDb-ID based scrapers: no title/apostrophe search misses.
+            # Live only, so the background scraper doesn't hammer public services.
+            - name: SCRAPE_TORRENTIO
+              value: live
+            - name: SCRAPE_STREMTHRU
+              value: live
+            - name: SCRAPE_TORRENTSDB
+              value: live
+            # Re-scrape after 1 day instead of 7, so results that came back
+            # empty during an indexer outage recover on their own.
+            - name: LIVE_TORRENT_CACHE_TTL
+              value: "86400"
             - name: PROWLARR_URL
               value: http://prowlarr.prowlarr.svc.cluster.local:9696
             - name: PROWLARR_API_KEY
@@ -81,7 +95,7 @@ spec:
               memory: 512Mi
             limits:
               cpu: "2"
-              memory: 2Gi
+              memory: 3Gi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

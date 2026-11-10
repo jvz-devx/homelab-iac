@@ -1,0 +1,112 @@
+---
+# rocket-sim multiplayer server: the web client and the WebSocket on one
+# HTTP port. A single in-memory world, so exactly one replica and Recreate
+# (two pods would split the players). No volume: the image has no world
+# persistence yet. Public via cloudflared, see service.yaml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocket-sim
+  namespace: rocket-sim
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rocket-sim
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rocket-sim
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      # SIGTERM stops the server within about a second.
+      terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: ghcr-auth
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000 # the image's `node` user
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: rocket-sim
+          # Built by GitHub Actions from jvz-devx/rocket-sim branch `release`.
+          image: ghcr.io/jvz-devx/rocket-sim:sha-9d468e1@sha256:0bc4086542c8664c3f0edb125e9b15ee953c6b977b176fe3b1a954a508126964
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PUBLIC_ORIGIN
+              value: https://rocket.jensvanzutphen.com
+            - name: HOST
+              value: 0.0.0.0
+            - name: PORT
+              value: "3000"
+            - name: SIM_INTERNAL_PORT
+              value: "8790"
+            # Cloudflare's edge appends the visitor IP to X-Forwarded-For and
+            # cloudflared passes it through: one hop in front of this port.
+            - name: SIM_PROXY_HOPS
+              value: "1"
+            # Caps upload: ~19 Mbit/s at 4 pilots with the current protocol.
+            # Raise once the compact protocol lands.
+            - name: SIM_MAX_PILOTS
+              value: "6"
+            - name: SIM_SNAPSHOT_HZ
+              value: "20"
+            - name: SIM_JOIN_SECRET_FILE
+              value: /etc/rocket-sim/join-secret
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          volumeMounts:
+            - name: join-secret
+              mountPath: /etc/rocket-sim
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          readinessProbe:
+            httpGet:
+              path: /simulation/health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /simulation/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              # ~10% of a core with 6 pilots under load (4.6 ms per 1/60 s
+              # tick at 16 pilots).
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 384Mi
+      volumes:
+        - name: join-secret
+          secret:
+            secretName: rocket-sim-join
+            defaultMode: 0440
+            items:
+              - key: join-secret
+                path: join-secret
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi

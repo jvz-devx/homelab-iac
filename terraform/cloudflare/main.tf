@@ -73,6 +73,10 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "hetzner_aiostreams" 
         service  = "http://netmon.netmon.svc.cluster.local:80"
       },
       {
+        hostname = "rocket.jensvanzutphen.com"
+        service  = "http://rocket-sim.rocket-sim.svc.cluster.local:80"
+      },
+      {
         service = "http_status:404"
       }
     ]
@@ -185,6 +189,18 @@ resource "cloudflare_dns_record" "netmon_jensvanzutphen" {
   ttl     = 1
   proxied = true
   comment = "Network-monitoring webhook on Hetzner via dedicated Cloudflare Tunnel."
+}
+
+resource "cloudflare_dns_record" "rocket_jensvanzutphen" {
+  provider = cloudflare.dns
+
+  zone_id = var.jensvanzutphen_zone_id
+  name    = "rocket"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.hetzner_aiostreams.id}.cfargotunnel.com"
+  type    = "CNAME"
+  ttl     = 1
+  proxied = true
+  comment = "rocket-sim multiplayer server on Hetzner via dedicated Cloudflare Tunnel."
 }
 
 resource "cloudflare_dns_record" "strikers_wt_jensvanzutphen" {

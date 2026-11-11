@@ -36,7 +36,7 @@ spec:
       containers:
         - name: rocket-sim
           # Built by GitHub Actions from jvz-devx/rocket-sim branch `release`.
-          image: ghcr.io/jvz-devx/rocket-sim:release@sha256:c5bc3db166b7c418f34cfb8dbd77198211fe8be83a9de89395b70ac2702f8b3a # {"$imagepolicy": "flux-system:rocket-sim"}
+          image: ghcr.io/jvz-devx/rocket-sim:release@sha256:1ec175f55f73169cc3a7733ac5953132695019a5c1a0b98da2a00fa6df122e36 # {"$imagepolicy": "flux-system:rocket-sim"}
           imagePullPolicy: IfNotPresent
           env:
             - name: PUBLIC_ORIGIN

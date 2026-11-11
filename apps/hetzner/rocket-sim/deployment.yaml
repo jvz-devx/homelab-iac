@@ -1,8 +1,8 @@
 ---
 # rocket-sim multiplayer server: the web client and the WebSocket on one
-# HTTP port. A single in-memory world, so exactly one replica and Recreate
-# (two pods would split the players). No volume: the image has no world
-# persistence yet. Public via cloudflared, see service.yaml.
+# HTTP port. One persistent world on an RWO volume, so exactly one replica
+# and Recreate (two pods would split the players). The universe is saved
+# under /data. Public via cloudflared, see service.yaml.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,7 +37,7 @@ spec:
       containers:
         - name: rocket-sim
           # Built by GitHub Actions from jvz-devx/rocket-sim branch `release`.
-          image: ghcr.io/jvz-devx/rocket-sim:sha-9d468e1@sha256:0bc4086542c8664c3f0edb125e9b15ee953c6b977b176fe3b1a954a508126964
+          image: ghcr.io/jvz-devx/rocket-sim:release@sha256:09fbfac412f36ebd659be0ba82a61d9f5e961295a0ff2746b464986be1fdadf3 # {"$imagepolicy": "flux-system:rocket-sim"}
           imagePullPolicy: IfNotPresent
           env:
             - name: PUBLIC_ORIGIN
@@ -52,12 +52,17 @@ spec:
             # cloudflared passes it through: one hop in front of this port.
             - name: SIM_PROXY_HOPS
               value: "1"
-            # Caps upload: ~19 Mbit/s at 4 pilots with the current protocol.
-            # Raise once the compact protocol lands.
+            # With the binary protocol, 16 pilots use ~3.4 Mbit/s host upload
+            # in normal play.
             - name: SIM_MAX_PILOTS
-              value: "6"
+              value: "16"
+            # ~33 Mbit/s hard cap; above it every connection lowers its rate.
+            - name: SIM_UPLOAD_BUDGET_KBPS
+              value: "4096"
             - name: SIM_SNAPSHOT_HZ
               value: "20"
+            - name: SIM_SAVE_PATH
+              value: /data/universe.json
             - name: SIM_JOIN_SECRET_FILE
               value: /etc/rocket-sim/join-secret
           ports:
@@ -70,6 +75,8 @@ spec:
               readOnly: true
             - name: tmp
               mountPath: /tmp
+            - name: data
+              mountPath: /data
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -92,10 +99,9 @@ spec:
             failureThreshold: 3
           resources:
             requests:
-              # ~10% of a core with 6 pilots under load (4.6 ms per 1/60 s
-              # tick at 16 pilots).
-              cpu: 100m
-              memory: 128Mi
+              # The new release takes ~1.6-7 ms per tick at 16 pilots.
+              cpu: 300m
+              memory: 192Mi
             limits:
               cpu: 1000m
               memory: 384Mi
@@ -110,3 +116,6 @@ spec:
         - name: tmp
           emptyDir:
             sizeLimit: 16Mi
+        - name: data
+          persistentVolumeClaim:
+            claimName: rocket-sim-data

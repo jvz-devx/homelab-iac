@@ -1,0 +1,18 @@
+---
+# Separate from pvc.yaml so reverting the original persistence commit does
+# not remove this claim. Retain also protects the PV if the app/namespace
+# is deleted. See README.md before reclaiming a released backup volume.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rocket-sim-backups
+  namespace: rocket-sim
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path-retain
+  resources:
+    requests:
+      storage: 1Gi

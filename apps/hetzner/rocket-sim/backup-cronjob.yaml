@@ -1,0 +1,91 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rocket-sim-backup
+  namespace: rocket-sim
+spec:
+  schedule: "17 * * * *"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 120
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: rocket-sim-backup
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          # Matches rocket-sim-data's PV affinity. RWO permits both pods
+          # to mount it on this node; WaitForFirstConsumer pins backups too.
+          nodeSelector:
+            kubernetes.io/hostname: hetzner-k3s-2
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: backup
+              image: busybox:1.37
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  [ -f /data/universe.json ] || exit 0
+                  umask 077
+                  export LC_ALL=C
+                  temporary=/backup/.universe.tmp
+                  trap 'rm -f "$temporary"' EXIT HUP INT TERM
+                  # The server replaces its save atomically. Copy once so
+                  # comparison and publication use the same complete save.
+                  cp /data/universe.json "$temporary"
+                  newest=$(find /backup -maxdepth 1 -type f -name 'universe-*.json' | sort -r | head -n 1)
+                  if [ -n "$newest" ] && cmp -s "$temporary" "$newest"; then
+                    echo "Universe unchanged; no new backup"
+                  else
+                    backup="/backup/universe-$(date -u +%Y%m%dT%H%M%SZ).json"
+                    mv "$temporary" "$backup"
+                    echo "Created $backup"
+                    sha256sum "$backup"
+                  fi
+                  # Names sort chronologically because timestamps are UTC.
+                  find /backup -maxdepth 1 -type f -name 'universe-*.json' | sort -r | tail -n +49 |
+                    while IFS= read -r expired; do
+                      rm -- "$expired"
+                    done
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+                  readOnly: true
+                - name: backups
+                  mountPath: /backup
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 16Mi
+                limits:
+                  cpu: 100m
+                  memory: 32Mi
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: rocket-sim-data
+                readOnly: true
+            - name: backups
+              persistentVolumeClaim:
+                claimName: rocket-sim-backups

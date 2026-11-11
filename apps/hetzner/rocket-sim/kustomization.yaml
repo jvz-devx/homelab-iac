@@ -6,5 +6,7 @@ resources:
   - ghcr-auth-secret.yaml
   - secret.yaml
   - pvc.yaml
+  - backup-pvc.yaml
+  - backup-cronjob.yaml
   - deployment.yaml
   - service.yaml

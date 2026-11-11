@@ -1,4 +1,3 @@
----
 # rocket-sim multiplayer server: the web client and the WebSocket on one
 # HTTP port. One persistent world on an RWO volume, so exactly one replica
 # and Recreate (two pods would split the players). The universe is saved
@@ -37,7 +36,7 @@ spec:
       containers:
         - name: rocket-sim
           # Built by GitHub Actions from jvz-devx/rocket-sim branch `release`.
-          image: ghcr.io/jvz-devx/rocket-sim:release@sha256:09fbfac412f36ebd659be0ba82a61d9f5e961295a0ff2746b464986be1fdadf3 # {"$imagepolicy": "flux-system:rocket-sim"}
+          image: ghcr.io/jvz-devx/rocket-sim:release@sha256:c79d045f978db0961e0e2f4914fe3ca8aa38299047bcd7b07cc124a277b30176 # {"$imagepolicy": "flux-system:rocket-sim"}
           imagePullPolicy: IfNotPresent
           env:
             - name: PUBLIC_ORIGIN

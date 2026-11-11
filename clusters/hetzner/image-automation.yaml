@@ -103,6 +103,33 @@ spec:
   digestReflectionPolicy: IfNotPresent
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: rocket-sim
+  namespace: flux-system
+spec:
+  image: ghcr.io/jvz-devx/rocket-sim
+  interval: 1m0s
+  secretRef:
+    name: ghcr-auth
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: rocket-sim
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: rocket-sim
+  filterTags:
+    pattern: '^release$'
+  policy:
+    alphabetical:
+      order: asc
+  digestReflectionPolicy: Always
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageUpdateAutomation
 metadata:
   name: app-image-digests

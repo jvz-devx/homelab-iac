@@ -38,12 +38,17 @@ spec:
             - until nc -z pot-server 4416; do sleep 2; done
       containers:
         - name: bot
-          image: ghcr.io/jvz-devx/resonance:0.6.8@sha256:b2d0eea6bb2718a1be47faa02d220fecff3822eac97426cb7c6fef01eef25c59
+          image: ghcr.io/jvz-devx/resonance:0.6.9@sha256:4eb263e4fb734043d99690fbe20f7174d6743531f0c87a0e2997a7c3c64f7f62
           imagePullPolicy: Always
           envFrom:
             - secretRef:
                 name: resonance-env
           env:
+            - name: DJ_ROLE_MANAGER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: resonance-dj-manager
+                  key: DJ_ROLE_MANAGER_ID
             - name: YTDLP_WPC_BROWSER_PATH
               value: /usr/local/bin/chromium-wpc
           securityContext:

@@ -27,6 +27,9 @@ spec:
           envFrom:
             - secretRef:
                 name: startpage-env
+            # CLIPROXYAPI_URL and CLIPROXYAPI_MANAGEMENT_KEY for the codex pool panel.
+            - secretRef:
+                name: startpage-cliproxyapi
           env:
             - name: HOST
               value: 0.0.0.0

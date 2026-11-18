@@ -19,6 +19,10 @@ web panel at `/management.html` need `management.secret-key`. Both keys are in
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops -d apps/hetzner/cliproxyapi/secret.yaml
 ```
 
+The homelab cluster reaches the same device through an egress Service
+(`apps/startpage/cliproxyapi-egress.yaml`), for the startpage's codex pool
+panel.
+
 ## Routing
 
 `secret.yaml` holds the whole `config.yaml`, mounted read-only.

@@ -1,0 +1,19 @@
+---
+# Route to CLIProxyAPI on the Hetzner cluster (apps/hetzner/cliproxyapi) for
+# the startpage's codex pool panel. The Tailscale operator turns this into an
+# egress proxy to the tailnet device `cliproxyapi`; the pod then reaches it as
+# http://cliproxyapi.startpage.svc.cluster.local:8317.
+apiVersion: v1
+kind: Service
+metadata:
+  name: cliproxyapi
+  namespace: startpage
+  annotations:
+    tailscale.com/tailnet-fqdn: cliproxyapi.zebu-dorian.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder
+  ports:
+    - name: http
+      port: 8317
+      protocol: TCP

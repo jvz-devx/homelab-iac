@@ -4,8 +4,10 @@ resources:
   - namespace.yaml
   - ghcr-auth-secret.yaml
   - secret.yaml
+  - cliproxyapi-secret.yaml
   - deployment.yaml
   - service.yaml
+  - cliproxyapi-egress.yaml
   - ingress.yaml
 
 # Priority 2: runs on k3s-worker-1 (node1). See docs/nodes.md.

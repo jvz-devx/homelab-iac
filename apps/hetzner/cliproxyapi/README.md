@@ -56,5 +56,28 @@ curl -X POST -H 'Content-Type: application/json' \
 
 ## Upgrades
 
-The image is pinned by tag and digest in `deployment.yaml`. The config uses
-the v8 layout (`config-version: 8`).
+A weekly scheduled agent in T3 Code on workstation-01 (Monday 06:00) runs
+`scripts/update-cliproxyapi.sh`. The proxy imitates the official Codex client,
+so it goes stale if it is not updated.
+
+The script picks the newest 8.x release that is at least three days old
+(`SOAK_DAYS`) and on Docker Hub for amd64. If that is newer than the pin, it
+rewrites the `image:` line in `deployment.yaml` (tag and digest), commits,
+pushes to `origin main`, asks Flux to reconcile and waits for the rollout. It
+never downgrades, and a new major version waits for a manual update.
+
+After the rollout it checks that the pod runs the new pin, that the proxy
+still has all its accounts with none disabled, and that `/v1/models` answers.
+An account at its usage limit is not a failure. If a check fails, the script
+reverts the commit, rolls back the same way and exits non-zero. Its last
+output line starts with `RESULT:`.
+
+```bash
+scripts/update-cliproxyapi.sh --dry-run   # changes nothing, still runs the checks
+scripts/update-cliproxyapi.sh
+```
+
+It needs `ssh hetzner`, the management key
+(`CLIPROXYAPI_MANAGEMENT_KEY`, or the file `/run/secrets/cliproxyapi_management_key`)
+and the API key (`CLIPROXYAPI_API_KEY`). The config uses the v8 layout
+(`config-version: 8`).

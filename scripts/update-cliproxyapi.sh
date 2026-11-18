@@ -266,8 +266,8 @@ if [ -z "$new_tag" ]; then
     log "baseline: $ACC_SUMMARY"
     gate "$old_pin" "$ACC_COUNT" || die "the gate fails on the current pin: $GATE_ERROR"
   fi
-  log "nothing to do: $old_tag is the newest eligible release"
-  RESULT="no-op, CLIProxyAPI stays on $old_tag (no newer 8.x release that is $SOAK_DAYS days old and on Docker Hub)"
+  log "nothing to do: the pin $old_tag is not older than ${soaked[0]:-any soaked release}"
+  RESULT="no-op, CLIProxyAPI stays on $old_tag (newest 8.x release that is $SOAK_DAYS days old: ${soaked[0]:-none}; newer ones are still soaking or not on Docker Hub)"
   exit 0
 fi
 new_pin="$HUB_REPO:$new_tag@$new_digest"

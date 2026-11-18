@@ -22,7 +22,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: startpage
-          image: ghcr.io/jvz-devx/startpage:main@sha256:c42593271a7c40f09fb981a1a65b7ed2c3307584f902a20fe802ccfc98db6b0e # {"$imagepolicy": "flux-system:startpage"}
+          image: ghcr.io/jvz-devx/startpage:main@sha256:af2a7cfacd9d00e9421cadce292f6062b5b2ced454b5d3bf64f4d077f0c8f715 # {"$imagepolicy": "flux-system:startpage"}
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:

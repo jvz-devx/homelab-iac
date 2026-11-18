@@ -14,8 +14,7 @@ Proxmox node2 (192.168.1.12, N100)
         ├── cert-manager (TLS)
         ├── FluxCD       (GitOps)
         ├── cloudflared  (Tunnel → jensvanzutphen.com)
-        ├── Tailscale    (cross-cluster service access)
-        └── NAS storage  (rclone FTP → 192.168.1.1)
+        └── Tailscale    (cross-cluster service access)
 
 Proxmox node1 (192.168.1.11, i5-10400T)
 └── LXC 102 k3s-worker-1 (192.168.1.22) — privileged, Ubuntu 24.04
@@ -89,7 +88,6 @@ ansible-playbook site.yml   # Rebuilds everything; Flux reconciles workloads fro
 ```bash
 sops ansible/group_vars/all.sops.yml        # GitHub PAT, Cloudflare tokens
 sops infrastructure/controllers/cloudflared/secret.yaml  # Tunnel token
-sops infrastructure/controllers/nas/secret.yaml          # NAS credentials
 sops infrastructure/controllers/tailscale-operator/secret.yaml          # Homelab Tailscale operator OAuth
 sops infrastructure/hetzner/controllers/tailscale-operator/secret.yaml  # Hetzner Tailscale operator OAuth
 ```

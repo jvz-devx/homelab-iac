@@ -23,7 +23,7 @@ patch in each app's `kustomization.yaml` (search for "Priority").
 | 2 | `k3s-worker-1` | strikers, klavier (app, ws-server, redis, postgres), boodschappen (+ weekly reminder CronJob), hermes-friend, minecraft-resource-pack, romm (+ mariadb; ROM library on the NAS), startpage (LAN-only) |
 
 Infrastructure (Flux, cert-manager, coredns, traefik, cloudflared,
-external-dns, metallb, tailscale operator, rclone-nas, ...) is not pinned and
+external-dns, metallb, tailscale operator, ...) is not pinned and
 goes wherever the scheduler puts it.
 
 To change an app's node: edit the patch in its `kustomization.yaml`. If the

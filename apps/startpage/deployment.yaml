@@ -34,8 +34,12 @@ spec:
               value: "3000"
             - name: NODE_ENV
               value: production
-            - name: ORIGIN
-              value: https://start.jensvanzutphen.com
+            # The page is served under two hostnames, so the app takes its origin from
+            # the headers Traefik sets instead of a fixed ORIGIN.
+            - name: PROTOCOL_HEADER
+              value: x-forwarded-proto
+            - name: HOST_HEADER
+              value: x-forwarded-host
           ports:
             - name: http
               containerPort: 3000

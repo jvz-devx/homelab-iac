@@ -1,12 +1,17 @@
 ---
-# Traffic model: LAN-only via public DNS (same as termix).
-#   DNS: start.jensvanzutphen.com → 192.168.1.41 (Traefik LB, RFC1918).
-#   Resolvable from anywhere; reachable only from the LAN.
-#   No external-dns tunnel annotations on purpose: the page has no login and
-#   shows the agenda and the backyard camera, so it must not go through the
-#   Cloudflare Tunnel.
-#   TLS: Let's Encrypt via DNS-01 (cert-manager letsencrypt-dns01),
-#   so no inbound HTTP from the ACME server is needed.
+# Two names, neither through the Cloudflare Tunnel: the page has no login and
+# shows the agenda and the backyard camera, so it must stay private.
+#
+# start.jensvanzutphen.com: tailnet. An unproxied A record to Traefik's tailnet
+#   device (traefik-homelab, infrastructure/controllers/traefik/
+#   tailnet-service.yaml), like romm. Works on any Tailscale device, at home
+#   or away. That device's IP can change if its Service is recreated.
+# start-lan.jensvanzutphen.com: LAN. No target annotation, so external-dns
+#   uses the Traefik LB address (192.168.1.41). For devices at home without
+#   Tailscale.
+#
+# TLS for both: Let's Encrypt via DNS-01 (cert-manager letsencrypt-dns01), so
+# no inbound HTTP from the ACME server is needed.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -14,6 +19,8 @@ metadata:
   namespace: startpage
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    external-dns.alpha.kubernetes.io/target: 100.90.157.57
 spec:
   ingressClassName: traefik
   rules:
@@ -31,3 +38,28 @@ spec:
     - hosts:
         - start.jensvanzutphen.com
       secretName: startpage-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: startpage-lan
+  namespace: startpage
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: start-lan.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: startpage
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - start-lan.jensvanzutphen.com
+      secretName: startpage-lan-tls

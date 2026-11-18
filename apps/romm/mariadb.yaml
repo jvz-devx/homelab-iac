@@ -4,7 +4,10 @@ metadata:
   name: mariadb
   namespace: romm
 spec:
-  replicas: 1
+  # Turned off for now (2026-11-18): scaled to zero so the volumes and the database
+  # stay. The ROM library came from rclone-nas, which has been removed; romm needs a
+  # new library source before this goes back to 1.
+  replicas: 0
   strategy:
     type: Recreate
   selector:

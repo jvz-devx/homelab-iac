@@ -31,7 +31,8 @@ Cross-cluster routing uses two Tailscale layers:
   access where pod IPs or ClusterIPs would be brittle
 
 No operator-managed shared app services are active right now (CLIProxyAPI, the
-first one, was removed). See
+first one, was removed from homelab; it now runs on Hetzner as a tailnet-only
+app that no cluster consumes). See
 `docs/tailscale-routing.md` for policy requirements, rollout steps, and
 verification commands. Do not rely on Kubernetes node joining across the public
 internet.

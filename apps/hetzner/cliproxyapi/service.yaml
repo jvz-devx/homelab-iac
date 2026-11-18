@@ -1,0 +1,20 @@
+---
+# Tailnet only: the Tailscale operator publishes this as `cliproxyapi`.
+# There is no Ingress and no Cloudflare route on purpose.
+apiVersion: v1
+kind: Service
+metadata:
+  name: cliproxyapi
+  namespace: cliproxyapi
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: cliproxyapi
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: cliproxyapi
+  ports:
+    - name: http
+      port: 8317
+      targetPort: http
+      protocol: TCP

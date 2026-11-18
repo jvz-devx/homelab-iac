@@ -65,6 +65,10 @@ be exposed from homelab (`apps/cliproxyapi/service.yaml`, Tailscale hostname
 `cliproxyapi-homelab`) and imported in Hetzner through an ExternalName stub in
 `infrastructure/hetzner/configs/remote-homelab-stubs.yaml`; both were removed.
 
+CLIProxyAPI now runs on Hetzner (`apps/hetzner/cliproxyapi`). Its Service is
+exposed to the tailnet as `cliproxyapi` for Jens's own machines. Neither
+cluster consumes it, so it is not a cross-cluster service.
+
 For a new shared service, export it with a Tailscale-annotated Service in the
 source cluster and import it with an operator-managed ExternalName Service
 (`tailscale.com/tailnet-fqdn` or `tailscale.com/tailnet-ip`) in the other.

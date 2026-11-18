@@ -1,0 +1,15 @@
+---
+# OAuth credentials for the pooled accounts. Retained so a deleted claim does
+# not force a new login for every account.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cliproxyapi-auth
+  namespace: cliproxyapi
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path-retain
+  resources:
+    requests:
+      storage: 1Gi

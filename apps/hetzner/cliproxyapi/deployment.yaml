@@ -1,0 +1,64 @@
+---
+# CLIProxyAPI pools Jens's Codex subscriptions behind one endpoint and moves
+# to the next account when one hits its usage limit. See README.md.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cliproxyapi
+  namespace: cliproxyapi
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cliproxyapi
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cliproxyapi
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      containers:
+        - name: cliproxyapi
+          image: eceasy/cli-proxy-api:v8.0.77@sha256:2acf44fbadf9933a04e971048b4c2ddd184ce6e3ea08fc2dc25354f3a365f5ab
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8317
+          volumeMounts:
+            - name: config
+              mountPath: /CLIProxyAPI/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: auth
+              mountPath: /root/.cli-proxy-api
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: config
+          secret:
+            secretName: cliproxyapi-config
+        - name: auth
+          persistentVolumeClaim:
+            claimName: cliproxyapi-auth

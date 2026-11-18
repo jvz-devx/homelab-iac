@@ -18,5 +18,7 @@ resources:
   - startpage
   - steve-website
   - strikers
-  - toepen
+  # Disabled: valkey OOM-loops on a 236 MB dataset against a 256Mi limit and takes
+  # toepen down with it, which stalls every apps reconcile on the health check.
+  # - toepen
   # - termix

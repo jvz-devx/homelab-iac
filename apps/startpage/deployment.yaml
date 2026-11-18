@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: startpage
+  namespace: startpage
+spec:
+  # One replica on purpose: the camera still and the status history live in the pod's memory, and the
+  # camera can only produce one still at a time.
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: startpage
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: startpage
+    spec:
+      imagePullSecrets:
+        - name: ghcr-auth
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: startpage
+          image: ghcr.io/jvz-devx/startpage:main@sha256:bfd6e54874cba5b4265aae41ba45d426bc35e93bddac19b7ec8b5058568ec3e8 # {"$imagepolicy": "flux-system:startpage"}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: startpage-env
+          env:
+            - name: HOST
+              value: 0.0.0.0
+            - name: PORT
+              value: "3000"
+            - name: NODE_ENV
+              value: production
+            - name: ORIGIN
+              value: https://start.jensvanzutphen.com
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi

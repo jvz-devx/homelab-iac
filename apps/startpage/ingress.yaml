@@ -1,0 +1,33 @@
+---
+# Traffic model: LAN-only via public DNS (same as termix).
+#   DNS: start.jensvanzutphen.com → 192.168.1.41 (Traefik LB, RFC1918).
+#   Resolvable from anywhere; reachable only from the LAN.
+#   No external-dns tunnel annotations on purpose: the page has no login and
+#   shows the agenda and the backyard camera, so it must not go through the
+#   Cloudflare Tunnel.
+#   TLS: Let's Encrypt via DNS-01 (cert-manager letsencrypt-dns01),
+#   so no inbound HTTP from the ACME server is needed.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: startpage
+  namespace: startpage
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: start.jensvanzutphen.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: startpage
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - start.jensvanzutphen.com
+      secretName: startpage-tls

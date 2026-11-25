@@ -33,6 +33,9 @@ tofu -chdir=terraform/cloudflare apply
   - `nzbdav.jensvanzutphen.com -> http://nzbdav.nzbdav.svc.cluster.local:3000`
   - `aiostreams.tunetap.xyz -> http://aiostreams.aiostreams.svc.cluster.local:3000`
   - `netmon.jensvanzutphen.com -> http://netmon.netmon.svc.cluster.local:80`
+  - `rocket.jensvanzutphen.com -> http://rocket-sim.rocket-sim.svc.cluster.local:80`
+  - `surf-test.jensvanzutphen.com -> http://surf-strike.surf-strike.svc.cluster.local:80` (Surf Strike 2 test server)
+  - `surf-base.jensvanzutphen.com -> http://surf-base.surf-base.svc.cluster.local:80` (temporary origin/master baseline)
 - Private Tailscale-only DNS:
   - `chat-api.jensvanzutphen.com -> 100.71.48.37`
 - Public unproxied DNS:
@@ -50,3 +53,12 @@ The default provider uses `CLOUDFLARE_API_TOKEN`. A second aliased provider uses
 The token must be account-scoped and able to manage Cloudflare Tunnel config.
 The zone-level DNS token used by cert-manager/external-dns is intentionally not
 enough for the tunnel resource, but is used by the DNS-record resource.
+
+## State drift
+
+The local state was last written on 2026-11-10, before the Hetzner tunnel,
+rocket, strikers-wt, netmon and surf records were added. A plan from it wants
+to create the Hetzner tunnel again. The surf-test and surf-base tunnel rules
+and CNAMEs (2026-11-25) were applied through the Cloudflare API after checking
+that the live ingress list matched this file. Import the missing resources
+before the next `tofu apply`.

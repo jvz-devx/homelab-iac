@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: surf-base
+  labels:
+    app.kubernetes.io/part-of: surf-netcode-test

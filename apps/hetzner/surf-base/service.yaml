@@ -1,0 +1,13 @@
+---
+# Reached only by cloudflared (hetzner-aiostreams tunnel) for
+# surf-base.jensvanzutphen.com; see terraform/cloudflare/main.tf.
+apiVersion: v1
+kind: Service
+metadata:
+  name: surf-base
+  namespace: surf-base
+spec:
+  selector:
+    app.kubernetes.io/name: surf-base
+  ports:
+    - {name: http, port: 80, targetPort: http}

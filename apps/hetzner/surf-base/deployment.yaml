@@ -1,0 +1,83 @@
+---
+# TEMPORARY baseline for the Surf Strike 2 netcode work: the game server at
+# origin/master a64f384 (before the netcode changes), so measurements of the
+# new server (apps/hetzner/surf-strike) can be compared over the same
+# Cloudflare tunnel path. No image: the init container downloads the source
+# tarball and installs the server workspace. Remove this directory when the
+# comparison is done.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: surf-base
+  namespace: surf-base
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: surf-base
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: surf-base
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: fetch
+          image: node:24-trixie
+          workingDir: /work
+          env:
+            - {name: HOME, value: /work}
+            - {name: COREPACK_HOME, value: /work/.corepack}
+            - {name: COREPACK_ENABLE_DOWNLOAD_PROMPT, value: "0"}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              src=https://codeload.github.com/jvz-devx/Surf-Strike-2/tar.gz/a64f384298611972d03c7eb20c9c8ddd2ed8277b
+              node -e "fetch(process.argv[1]).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+                .then(b => require('fs').writeFileSync('/work/src.tgz', Buffer.from(b)))" "$src"
+              mkdir -p app && tar xzf src.tgz -C app --strip-components=1
+              cd app && corepack pnpm@9.15.0 install --frozen-lockfile --filter server... --config.confirmModulesPurge=false
+          resources:
+            limits: {memory: 768Mi}
+          volumeMounts:
+            - {name: work, mountPath: /work}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+      containers:
+        - name: server
+          image: node:24-trixie-slim
+          workingDir: /work/app/apps/server
+          command: [node_modules/.bin/tsx, src/index.ts]
+          env:
+            - {name: HOME, value: /work}
+            - {name: PORT, value: "8080"}
+            - {name: DB_PATH, value: /work/data/surf.db}
+            - {name: NODE_ENV, value: production}
+          ports:
+            - {name: http, containerPort: 8080}
+          readinessProbe:
+            httpGet: {path: /health, port: http}
+            periodSeconds: 5
+          resources:
+            requests: {cpu: 250m, memory: 192Mi}
+            limits: {memory: 384Mi}
+          volumeMounts:
+            - {name: work, mountPath: /work}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+      volumes:
+        - name: work
+          emptyDir: {sizeLimit: 2Gi}

@@ -1,5 +1,5 @@
 # Surf Strike 2 test server: the game server and the web client on one HTTP
-# port (/ws is the game WebSocket, /health and /metrics for probes). One lobby
+# port (/ws is the game WebSocket and /health is for probes). One lobby
 # with in-memory state and SQLite on an RWO volume, so exactly one replica and
 # Recreate. Public via cloudflared, see service.yaml.
 apiVersion: apps/v1
@@ -34,8 +34,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: surf-strike
-          # Bootstrap from feat/netcode-deploy. Flux follows the netcode tag.
-          image: ghcr.io/jvz-devx/surf-strike-2:netcode@sha256:ed0c197d7da8b9f5aacaa5416809ae5af0e7798ff5ab07747d3e561baa8f20ae # {"$imagepolicy": "flux-system:surf-strike"}
+          # Flux follows the netcode tag.
+          image: ghcr.io/jvz-devx/surf-strike-2:netcode@sha256:ed0c197d7da8b9f5aacaa5416809ae5af0e7798ff5ab07747d3e561baa8f20ae # {"$imagepolicy":"flux-system:surf-strike"}
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV
@@ -46,12 +46,26 @@ spec:
               value: "8080"
             - name: DB_PATH
               value: /data/surf.db
+            - name: WEB_HANDLER
+              value: /app/web/handler.js
+            - name: BACKUP_DIR
+              value: /data/backups
+            - name: METRICS_PORT
+              value: "9090"
             - name: TRUST_PROXY
-              value: 10.52.0.0/16
+              value: cf:10.52.0.0/16
+            - name: ORIGIN
+              value: https://surf-test.jensvanzutphen.com
             - name: ALLOWED_ORIGINS
               value: https://surf-test.jensvanzutphen.com
             - name: MAX_PER_IP
-              value: "8"
+              value: "12"
+            - name: MAX_PENDING_PER_IP
+              value: "4"
+            - name: MAX_PENDING_CONNECTIONS
+              value: "16"
+            - name: HELLO_TIMEOUT_MS
+              value: "5000"
             - name: ADMIN_USERNAMES
               value: ""
           ports:

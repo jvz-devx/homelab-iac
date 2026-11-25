@@ -1,0 +1,18 @@
+---
+# Accounts, best times, ghosts and bans (SQLite in WAL mode) plus the hourly
+# backups the server writes under /data/backups. Retained: deleting the PVC
+# keeps the directory on the node.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: surf-strike-data
+  namespace: surf-strike
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path-retain
+  resources:
+    requests:
+      storage: 2Gi

@@ -22,6 +22,7 @@ resources:
   - strikers-relay
   - netmon
   - rocket-sim
+  - surf-strike
   # Temporary origin/master baseline for the Surf Strike 2 netcode test.
   - surf-base
   - cliproxyapi

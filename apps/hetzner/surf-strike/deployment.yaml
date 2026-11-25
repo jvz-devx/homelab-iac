@@ -1,0 +1,102 @@
+---
+# Surf Strike 2 test server: the game server and the web client on one HTTP
+# port (/ws is the game WebSocket, /health and /metrics for probes). One lobby
+# with in-memory state and SQLite on an RWO volume, so exactly one replica and
+# Recreate. Public via cloudflared, see service.yaml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: surf-strike
+  namespace: surf-strike
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: surf-strike
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: surf-strike
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: ghcr-auth
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000 # the image's `node` user
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: surf-strike
+          # Bootstrap from feat/netcode-deploy. Flux follows the netcode tag.
+          image: ghcr.io/jvz-devx/surf-strike-2:netcode-deploy@sha256:a9bd58d6af668b3672b0d5ecf80d57b608be9b5515244fb5cca8c967c725e801 # {"$imagepolicy": "flux-system:surf-strike"}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: HOST
+              value: 0.0.0.0
+            - name: PORT
+              value: "8080"
+            - name: DB_PATH
+              value: /data/surf.db
+            - name: TRUST_PROXY
+              value: 10.52.0.0/16
+            - name: ALLOWED_ORIGINS
+              value: https://surf-test.jensvanzutphen.com
+            - name: MAX_PER_IP
+              value: "8"
+            - name: ADMIN_USERNAMES
+              value: ""
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: data
+              mountPath: /data
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            # 32 bots at 64 Hz used 3-5% of an M5 Pro core; a shared EPYC
+            # vCPU is slower. No CPU limit, so scrypt bursts do not throttle
+            # the 64 Hz loop. The node has little free memory: hard 512Mi.
+            requests:
+              cpu: 500m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+        - name: data
+          persistentVolumeClaim:
+            claimName: surf-strike-data

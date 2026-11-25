@@ -1,4 +1,3 @@
----
 # Surf Strike 2 test server: the game server and the web client on one HTTP
 # port (/ws is the game WebSocket, /health and /metrics for probes). One lobby
 # with in-memory state and SQLite on an RWO volume, so exactly one replica and
@@ -36,7 +35,7 @@ spec:
       containers:
         - name: surf-strike
           # Bootstrap from feat/netcode-deploy. Flux follows the netcode tag.
-          image: ghcr.io/jvz-devx/surf-strike-2:netcode-deploy@sha256:a9bd58d6af668b3672b0d5ecf80d57b608be9b5515244fb5cca8c967c725e801 # {"$imagepolicy": "flux-system:surf-strike"}
+          image: ghcr.io/jvz-devx/surf-strike-2:netcode@sha256:ed0c197d7da8b9f5aacaa5416809ae5af0e7798ff5ab07747d3e561baa8f20ae # {"$imagepolicy": "flux-system:surf-strike"}
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV

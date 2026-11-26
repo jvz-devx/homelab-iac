@@ -35,7 +35,7 @@ spec:
       containers:
         - name: surf-strike
           # Flux follows the netcode tag.
-          image: ghcr.io/jvz-devx/surf-strike-2:netcode@sha256:ab94610ef3fca3e91c2816a33f4845f8d9e8542b489c94e89a5abe28cbbe3034 # {"$imagepolicy":"flux-system:surf-strike"}
+          image: ghcr.io/jvz-devx/surf-strike-2:netcode@sha256:8d4d0a481df2fab534f9d8b49131601ed94acf646c4878a06c11ba607058a3a6 # {"$imagepolicy":"flux-system:surf-strike"}
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV

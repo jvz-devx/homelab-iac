@@ -57,7 +57,8 @@ spec:
             - name: ORIGIN
               value: https://surf-test.jensvanzutphen.com
             - name: ALLOWED_ORIGINS
-              value: https://surf-test.jensvanzutphen.com
+              # The Vercel frontend reaches this server through FIXED_SERVER_URL.
+              value: https://surf-test.jensvanzutphen.com,https://surf-strike-2.vercel.app
             - name: MAX_PER_IP
               value: "12"
             - name: MAX_PENDING_PER_IP

@@ -34,8 +34,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: surf-strike
-          # Flux follows the netcode tag.
-          image: ghcr.io/jvz-devx/surf-strike-2:netcode@sha256:c84f613094127f39114ef9f4e1dc07a84d4caee09b673cc32300b4782be9093e # {"$imagepolicy":"flux-system:surf-strike"}
+          # Flux follows the latest tag (upstream master).
+          image: ghcr.io/qwerty451/surf-strike-2:latest@sha256:9682265a319ef29cecf069f9cb18762900789d4e91fbd20f7600b7251d8e7ccc # {"$imagepolicy":"flux-system:surf-strike"}
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV

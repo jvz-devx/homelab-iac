@@ -135,7 +135,7 @@ metadata:
   name: surf-strike
   namespace: flux-system
 spec:
-  image: ghcr.io/jvz-devx/surf-strike-2
+  image: ghcr.io/qwerty451/surf-strike-2
   interval: 1m0s
   secretRef:
     name: ghcr-auth
@@ -149,7 +149,7 @@ spec:
   imageRepositoryRef:
     name: surf-strike
   filterTags:
-    pattern: '^netcode$'
+    pattern: '^latest$'
   policy:
     alphabetical:
       order: asc
